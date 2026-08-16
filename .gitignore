@@ -1,35 +1,47 @@
-﻿# Herramienta de Desarrollo con IA (archivos internos -- no subir al repo)
+# Herramienta de Desarrollo con IA (archivos internos -- no subir al repo)
 herramienta-desarrollo-ia.config.json
 CLAUDE.md
 .cursorrules
 .windsurfrules
-guia/
-.ai/
-.semgrep/
 
-# Environment
-.env
-.env.local
-.env.production
-.env*.local
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Dependencies
-node_modules/
-__pycache__/
-*.pyc
-.venv/
-venv/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Build outputs
-.next/
-dist/
-build/
-out/
+# testing
+/coverage
 
-# IDE
-.vscode/settings.json
-.idea/
+# next.js
+/.next/
+/out/
 
-# OS
+# production
+/build
+
+# misc
 .DS_Store
-Thumbs.db
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
