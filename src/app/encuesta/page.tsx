@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Configuracion, Encuesta, RespuestaPregunta } from "@/lib/types";
 import { obtenerConfiguracion, guardarEncuesta } from "@/lib/storage";
 import {
@@ -20,6 +21,10 @@ const PASOS: { id: Paso; etiqueta: string }[] = [
   { id: "preguntas", etiqueta: "Preguntas" },
   { id: "resultado", etiqueta: "Resultado" },
 ];
+
+function esPaso(v: string | null): v is Paso {
+  return v === "datos" || v === "discapacidad" || v === "preguntas" || v === "resultado";
+}
 
 function PasoIndicador({ paso }: { paso: Paso }) {
   const activo = PASOS.findIndex((p) => p.id === paso);
@@ -40,12 +45,36 @@ function PasoIndicador({ paso }: { paso: Paso }) {
 }
 
 export default function EncuestaPage() {
+  return (
+    <Suspense
+      fallback={
+        <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
+          <p className="text-ink-muted">Cargando encuesta...</p>
+        </main>
+      }
+    >
+      <EncuestaContenido />
+    </Suspense>
+  );
+}
+
+function EncuestaContenido() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  // El paso vive en la URL (?paso=...) para que el boton atras del
+  // navegador/celular navegue entre los pasos de la encuesta en vez de
+  // sacar al usuario de la pagina.
+  const paso: Paso = esPaso(searchParams.get("paso")) ? (searchParams.get("paso") as Paso) : "datos";
+
+  function irAPaso(siguiente: Paso) {
+    router.push(`/encuesta?paso=${siguiente}`, { scroll: false });
+  }
+
   const [config, setConfig] = useState<Configuracion | null>(null);
   useEffect(() => {
     obtenerConfiguracion().then(setConfig);
   }, []);
 
-  const [paso, setPaso] = useState<Paso>("datos");
   const [participante, setParticipante] = useState("");
   const [edad, setEdad] = useState("");
   const [discapacidad, setDiscapacidad] = useState<string>("");
@@ -86,7 +115,7 @@ export default function EncuestaPage() {
       return;
     }
     setError(null);
-    setPaso("discapacidad");
+    irAPaso("discapacidad");
   }
 
   function enviarPaso2() {
@@ -95,7 +124,7 @@ export default function EncuestaPage() {
       return;
     }
     setError(null);
-    setPaso("preguntas");
+    irAPaso("preguntas");
   }
 
   async function finalizar() {
@@ -143,7 +172,7 @@ export default function EncuestaPage() {
     await guardarEncuesta(encuesta);
     setEnviando(false);
     setResultado(encuesta);
-    setPaso("resultado");
+    irAPaso("resultado");
   }
 
   const nivel =
@@ -222,7 +251,7 @@ export default function EncuestaPage() {
           </fieldset>
           {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
           <div className="mt-6 flex gap-3">
-            <Button variant="secondary" onClick={() => setPaso("datos")}>
+            <Button variant="secondary" onClick={() => router.back()}>
               Atras
             </Button>
             <Button onClick={enviarPaso2}>Continuar</Button>
@@ -301,7 +330,7 @@ export default function EncuestaPage() {
           </div>
           {error && <div className="mt-6"><Alert tono="error">{error}</Alert></div>}
           <div className="mt-8 flex gap-3">
-            <Button variant="secondary" onClick={() => setPaso("discapacidad")} disabled={enviando}>
+            <Button variant="secondary" onClick={() => router.back()} disabled={enviando}>
               Atras
             </Button>
             <Button onClick={finalizar} disabled={enviando}>
