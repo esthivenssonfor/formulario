@@ -12,8 +12,9 @@ create table preguntas (
   id text primary key,
   texto text not null,
   categoria text not null,
+  seccion text not null,
   peso numeric not null default 1,
-  tipo text not null check (tipo in ('unica', 'multiple')),
+  tipo text not null check (tipo in ('unica', 'multiple', 'texto', 'fecha', 'numero')),
   mostrar_si_discapacidad text[] -- null/vacio = siempre visible
 );
 
@@ -56,7 +57,8 @@ create table respuestas (
   id uuid primary key default gen_random_uuid(),
   encuesta_id uuid not null references encuestas(id) on delete cascade,
   pregunta_id text not null references preguntas(id),
-  opcion_ids text[] not null,
+  opcion_ids text[] not null default '{}',
+  valor_texto text, -- solo para preguntas tipo texto/fecha/numero
   puntos numeric not null
 );
 
