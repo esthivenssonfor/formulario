@@ -2,31 +2,32 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main id="contenido" className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-8 px-6 py-16">
-      <div className="rounded-md border border-yellow-300 bg-yellow-50 px-4 py-2 text-sm text-yellow-900">
-        Modo DEMO: las preguntas y puntajes son de ejemplo, no el metodo oficial.
-      </div>
-
+    <main
+      id="contenido"
+      className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-10 px-6 py-16"
+    >
       <div>
-        <h1 className="text-3xl font-bold text-blue-950">
+        <p className="text-sm font-semibold text-brand">Evaluacion de vulnerabilidad</p>
+        <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink text-balance">
           Sistema de Evaluacion de Vulnerabilidad
         </h1>
-        <p className="mt-3 text-lg text-slate-700">
-          Encuesta accesible que adapta sus preguntas segun el tipo de discapacidad
-          de la persona y calcula automaticamente un nivel de vulnerabilidad.
+        <p className="mt-4 max-w-prose text-lg text-ink-muted text-pretty">
+          Encuesta accesible que recopila la situacion de salud, economica, de
+          vivienda y de apoyo de una persona con discapacidad, para ayudar a
+          identificar y priorizar la ayuda que necesita.
         </p>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
         <Link
           href="/encuesta"
-          className="flex-1 rounded-md bg-blue-900 px-6 py-4 text-center text-lg font-semibold text-white hover:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
+          className="flex-1 rounded-lg bg-brand px-6 py-4 text-center text-lg font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           Iniciar encuesta
         </Link>
         <Link
           href="/admin"
-          className="flex-1 rounded-md border-2 border-blue-900 px-6 py-4 text-center text-lg font-semibold text-blue-900 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900"
+          className="flex-1 rounded-lg border-2 border-brand px-6 py-4 text-center text-lg font-semibold text-brand transition-colors duration-150 hover:bg-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           Panel administrativo
         </Link>

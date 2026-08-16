@@ -8,6 +8,7 @@ import {
   restaurarConfiguracionDemo,
 } from "@/lib/storage";
 import type { Configuracion } from "@/lib/types";
+import { Alert, Button, TextArea } from "@/components/ui";
 
 // Editor de configuracion en JSON. Cubre todo lo pedido: puntos por respuesta,
 // peso por pregunta, categoria, puntaje minimo/maximo, rangos de nivel,
@@ -55,56 +56,41 @@ export default function ConfiguracionPage() {
   return (
     <main id="contenido" className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-blue-950">Configuracion (DEMO)</h1>
-        <Link href="/admin" className="text-blue-900 underline">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Configuracion</h1>
+        <Link href="/admin" className="font-medium text-brand underline underline-offset-2">
           Volver al panel
         </Link>
       </div>
-      <p className="mt-2 text-slate-600">
+      <p className="mt-2 text-ink-muted">
         Preguntas, opciones, puntos, pesos, categorias, rangos de nivel, direccion del
         puntaje y reglas de filtrado por discapacidad viven aqui como datos. Editar y
         guardar no requiere tocar codigo.
       </p>
 
       {mensaje && (
-        <p
-          role="alert"
-          className={`mt-4 rounded-md px-4 py-2 ${
-            mensaje.tipo === "ok"
-              ? "bg-emerald-50 text-emerald-800"
-              : "bg-red-50 text-red-800"
-          }`}
-        >
-          {mensaje.texto}
-        </p>
+        <div className="mt-4">
+          <Alert tono={mensaje.tipo === "ok" ? "ok" : "error"}>{mensaje.texto}</Alert>
+        </div>
       )}
 
       <label className="mt-4 flex flex-col gap-2">
-        <span className="font-medium">Configuracion (JSON)</span>
-        <textarea
+        <span className="font-medium text-ink">Configuracion (JSON)</span>
+        <TextArea
           value={cargando ? "Cargando..." : texto}
           onChange={(e) => setTexto(e.target.value)}
           disabled={cargando}
           spellCheck={false}
-          className="h-[520px] w-full rounded-md border border-slate-400 p-3 font-mono text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-900"
+          className="h-[520px] w-full font-mono text-sm"
         />
       </label>
 
       <div className="mt-4 flex gap-3">
-        <button
-          onClick={guardar}
-          disabled={cargando}
-          className="rounded-md bg-blue-900 px-6 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-40"
-        >
+        <Button onClick={guardar} disabled={cargando}>
           Guardar
-        </button>
-        <button
-          onClick={restaurar}
-          disabled={cargando}
-          className="rounded-md border-2 border-slate-400 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
-        >
+        </Button>
+        <Button variant="secondary" onClick={restaurar} disabled={cargando}>
           Restaurar configuracion oficial
-        </button>
+        </Button>
       </div>
     </main>
   );

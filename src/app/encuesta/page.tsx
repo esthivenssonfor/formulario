@@ -10,8 +10,34 @@ import {
   calcularPuntosRespuesta,
   preguntasVisibles,
 } from "@/lib/scoring";
+import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
 
 type Paso = "datos" | "discapacidad" | "preguntas" | "resultado";
+
+const PASOS: { id: Paso; etiqueta: string }[] = [
+  { id: "datos", etiqueta: "Datos" },
+  { id: "discapacidad", etiqueta: "Discapacidad" },
+  { id: "preguntas", etiqueta: "Preguntas" },
+  { id: "resultado", etiqueta: "Resultado" },
+];
+
+function PasoIndicador({ paso }: { paso: Paso }) {
+  const activo = PASOS.findIndex((p) => p.id === paso);
+  return (
+    <ol className="mb-8 flex items-center gap-2" aria-hidden="true">
+      {PASOS.map((p, idx) => (
+        <li key={p.id} className="flex flex-1 items-center gap-2">
+          <span
+            className={`h-1.5 flex-1 rounded-full transition-colors duration-150 ${
+              idx <= activo ? "bg-brand" : "bg-line"
+            }`}
+          />
+          {idx < PASOS.length - 1 && <span className="sr-only">/</span>}
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 export default function EncuestaPage() {
   const [config, setConfig] = useState<Configuracion | null>(null);
@@ -27,11 +53,18 @@ export default function EncuestaPage() {
   const [valores, setValores] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<Encuesta | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   const preguntas = useMemo(
     () => (config && discapacidad ? preguntasVisibles(config.preguntas, discapacidad) : []),
     [config, discapacidad]
   );
+
+  const preguntasDeSeleccion = useMemo(
+    () => preguntas.filter((p) => p.tipo === "unica" || p.tipo === "multiple"),
+    [preguntas]
+  );
+  const respondidas = preguntasDeSeleccion.filter((p) => seleccion[p.id]?.length).length;
 
   function elegirOpcion(preguntaId: string, opcionId: string, unica: boolean) {
     setSeleccion((prev) => {
@@ -75,6 +108,7 @@ export default function EncuestaPage() {
       return;
     }
     setError(null);
+    setEnviando(true);
 
     const respuestas: RespuestaPregunta[] = preguntas.map((p) =>
       p.tipo === "unica" || p.tipo === "multiple"
@@ -107,6 +141,7 @@ export default function EncuestaPage() {
     };
 
     await guardarEncuesta(encuesta);
+    setEnviando(false);
     setResultado(encuesta);
     setPaso("resultado");
   }
@@ -119,7 +154,7 @@ export default function EncuestaPage() {
   if (!config) {
     return (
       <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
-        <p className="text-slate-600">Cargando encuesta...</p>
+        <p className="text-ink-muted">Cargando encuesta...</p>
       </main>
     );
   }
@@ -129,45 +164,41 @@ export default function EncuestaPage() {
       <p aria-live="polite" className="sr-only">
         Paso: {paso}
       </p>
+      <PasoIndicador paso={paso} />
 
       {paso === "datos" && (
         <section aria-labelledby="titulo-paso">
-          <h1 id="titulo-paso" className="text-2xl font-bold text-blue-950">
+          <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
             Datos iniciales
           </h1>
           <div className="mt-6 flex flex-col gap-4">
-            <label className="flex flex-col gap-1">
-              <span className="font-medium">Nombre o codigo de participante</span>
-              <input
-                className="rounded-md border border-slate-400 px-3 py-2 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-900"
+            <label className="flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Nombre o codigo de participante</span>
+              <TextInput
                 value={participante}
                 onChange={(e) => setParticipante(e.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-1">
-              <span className="font-medium">Edad (opcional)</span>
-              <input
+            <label className="flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Edad (opcional)</span>
+              <TextInput
                 type="number"
                 min={0}
-                className="rounded-md border border-slate-400 px-3 py-2 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-900"
                 value={edad}
                 onChange={(e) => setEdad(e.target.value)}
               />
             </label>
           </div>
-          {error && <p role="alert" className="mt-4 text-red-700">{error}</p>}
-          <button
-            onClick={enviarPaso1}
-            className="mt-6 rounded-md bg-blue-900 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-800"
-          >
+          {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
+          <Button onClick={enviarPaso1} className="mt-6">
             Continuar
-          </button>
+          </Button>
         </section>
       )}
 
       {paso === "discapacidad" && (
         <section aria-labelledby="titulo-paso">
-          <h1 id="titulo-paso" className="text-2xl font-bold text-blue-950">
+          <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
             Tipo de discapacidad
           </h1>
           <fieldset className="mt-6 flex flex-col gap-3">
@@ -175,7 +206,7 @@ export default function EncuestaPage() {
             {config.tiposDiscapacidad.map((t) => (
               <label
                 key={t.id}
-                className="flex items-center gap-3 rounded-md border border-slate-400 px-4 py-3 text-lg has-[:checked]:border-blue-900 has-[:checked]:bg-blue-50"
+                className="flex items-center gap-3 rounded-lg border border-line-strong bg-surface px-4 py-3 text-lg transition-colors duration-150 has-[:checked]:border-brand has-[:checked]:bg-brand-soft"
               >
                 <input
                   type="radio"
@@ -183,61 +214,70 @@ export default function EncuestaPage() {
                   value={t.id}
                   checked={discapacidad === t.id}
                   onChange={() => setDiscapacidad(t.id)}
-                  className="h-5 w-5"
+                  className="h-5 w-5 accent-brand"
                 />
                 {t.etiqueta}
               </label>
             ))}
           </fieldset>
-          {error && <p role="alert" className="mt-4 text-red-700">{error}</p>}
+          {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
           <div className="mt-6 flex gap-3">
-            <button
-              onClick={() => setPaso("datos")}
-              className="rounded-md border-2 border-blue-900 px-6 py-3 text-lg font-semibold text-blue-900 hover:bg-blue-50"
-            >
+            <Button variant="secondary" onClick={() => setPaso("datos")}>
               Atras
-            </button>
-            <button
-              onClick={enviarPaso2}
-              className="rounded-md bg-blue-900 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-800"
-            >
-              Continuar
-            </button>
+            </Button>
+            <Button onClick={enviarPaso2}>Continuar</Button>
           </div>
         </section>
       )}
 
       {paso === "preguntas" && (
         <section aria-labelledby="titulo-paso">
-          <h1 id="titulo-paso" className="text-2xl font-bold text-blue-950">
-            Preguntas
-          </h1>
-          <p className="mt-2 text-slate-600">
-            {preguntas.length} pregunta{preguntas.length === 1 ? "" : "s"} para tu perfil.
-          </p>
-          <div className="mt-6 flex flex-col gap-8">
+          <div className="sticky top-0 z-10 -mx-6 border-b border-line bg-background/95 px-6 pb-3 pt-2 backdrop-blur-sm">
+            <div className="flex items-baseline justify-between gap-4">
+              <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
+                Preguntas
+              </h1>
+              <p className="whitespace-nowrap text-sm font-medium text-ink-muted">
+                {respondidas} / {preguntasDeSeleccion.length} respondidas
+              </p>
+            </div>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-line">
+              <div
+                className="h-full rounded-full bg-brand transition-[width] duration-200"
+                style={{
+                  width: `${preguntasDeSeleccion.length ? (respondidas / preguntasDeSeleccion.length) * 100 : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-10">
             {preguntas.map((p, idx) => {
               const nuevaSeccion = p.seccion !== preguntas[idx - 1]?.seccion;
               return (
                 <div key={p.id}>
                   {nuevaSeccion && (
-                    <h2 className="mb-4 text-xl font-bold text-blue-950">{p.seccion}</h2>
+                    <h2 className="mb-4 border-b border-line pb-2 text-lg font-bold tracking-tight text-brand">
+                      {p.seccion}
+                    </h2>
                   )}
-                  <fieldset className="border-t border-slate-200 pt-4">
-                    <legend className="text-lg font-semibold">{p.texto}</legend>
+                  <fieldset>
+                    <legend className="text-lg font-semibold text-ink text-pretty">
+                      {p.texto}
+                    </legend>
                     {(p.tipo === "unica" || p.tipo === "multiple") && (
                       <div className="mt-3 flex flex-col gap-2">
                         {p.opciones.map((o) => (
                           <label
                             key={o.id}
-                            className="flex items-center gap-3 rounded-md border border-slate-300 px-4 py-2 has-[:checked]:border-blue-900 has-[:checked]:bg-blue-50"
+                            className="flex items-center gap-3 rounded-lg border border-line px-4 py-2.5 transition-colors duration-150 has-[:checked]:border-brand has-[:checked]:bg-brand-soft"
                           >
                             <input
                               type={p.tipo === "unica" ? "radio" : "checkbox"}
                               name={p.id}
                               checked={(seleccion[p.id] ?? []).includes(o.id)}
                               onChange={() => elegirOpcion(p.id, o.id, p.tipo === "unica")}
-                              className="h-5 w-5"
+                              className="h-5 w-5 accent-brand"
                             />
                             {o.texto}
                           </label>
@@ -245,13 +285,13 @@ export default function EncuestaPage() {
                       </div>
                     )}
                     {(p.tipo === "texto" || p.tipo === "fecha" || p.tipo === "numero") && (
-                      <input
+                      <TextInput
                         type={p.tipo === "texto" ? "text" : p.tipo === "fecha" ? "date" : "number"}
                         value={valores[p.id] ?? ""}
                         onChange={(e) =>
                           setValores((prev) => ({ ...prev, [p.id]: e.target.value }))
                         }
-                        className="mt-3 w-full rounded-md border border-slate-400 px-3 py-2 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-900"
+                        className="mt-3 w-full"
                       />
                     )}
                   </fieldset>
@@ -259,41 +299,35 @@ export default function EncuestaPage() {
               );
             })}
           </div>
-          {error && <p role="alert" className="mt-4 text-red-700">{error}</p>}
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={() => setPaso("discapacidad")}
-              className="rounded-md border-2 border-blue-900 px-6 py-3 text-lg font-semibold text-blue-900 hover:bg-blue-50"
-            >
+          {error && <div className="mt-6"><Alert tono="error">{error}</Alert></div>}
+          <div className="mt-8 flex gap-3">
+            <Button variant="secondary" onClick={() => setPaso("discapacidad")} disabled={enviando}>
               Atras
-            </button>
-            <button
-              onClick={finalizar}
-              className="rounded-md bg-blue-900 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-800"
-            >
-              Finalizar
-            </button>
+            </Button>
+            <Button onClick={finalizar} disabled={enviando}>
+              {enviando ? "Guardando..." : "Finalizar"}
+            </Button>
           </div>
         </section>
       )}
 
       {paso === "resultado" && resultado && (
         <section aria-labelledby="titulo-paso">
-          <h1 id="titulo-paso" className="text-2xl font-bold text-blue-950">
+          <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
             Encuesta registrada
           </h1>
-          <div className="mt-6 rounded-md border border-slate-300 p-6">
-            <p className="text-slate-600">Puntaje total (DEMO)</p>
-            <p className="text-4xl font-bold">{resultado.puntajeTotal}</p>
+          <div className="mt-6 rounded-xl border border-line bg-surface p-6">
+            <p className="text-ink-muted">Puntaje total</p>
+            <p className="text-4xl font-bold text-ink">{resultado.puntajeTotal}</p>
             {nivel && (
-              <span className={`mt-3 inline-block rounded-full px-4 py-1 text-white ${nivel.color}`}>
-                Nivel: {nivel.nombre}
-              </span>
+              <div className="mt-3">
+                <NivelBadge tono={nivel.id}>Nivel: {nivel.nombre}</NivelBadge>
+              </div>
             )}
           </div>
           <Link
             href="/"
-            className="mt-6 inline-block rounded-md bg-blue-900 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-800"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-lg font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             Volver al inicio
           </Link>

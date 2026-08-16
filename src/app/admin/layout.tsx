@@ -25,7 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (esLogin) return <>{children}</>;
 
   if (session === undefined) {
-    return <p className="p-10 text-slate-600">Verificando sesion...</p>;
+    return <p className="p-10 text-ink-muted">Verificando sesion...</p>;
   }
 
   if (session === null) {
@@ -34,10 +34,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <>
-      <div className="flex justify-end px-6 pt-4">
+      <div className="flex justify-end border-b border-line bg-surface px-6 py-3">
         <button
           onClick={() => supabase.auth.signOut().then(() => router.push("/admin/login"))}
-          className="text-sm text-blue-900 underline"
+          className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           Cerrar sesion ({session.user.email})
         </button>

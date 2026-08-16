@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
+import { Alert, Button, TextInput } from "@/components/ui";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,54 +33,49 @@ export default function LoginPage() {
   }
 
   return (
-    <main id="contenido" className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-12">
-      <h1 className="text-2xl font-bold text-blue-950">
-        {modo === "login" ? "Acceso al panel admin" : "Crear cuenta de administrador"}
+    <main
+      id="contenido"
+      className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-12"
+    >
+      <p className="text-sm font-semibold text-brand">Panel administrativo</p>
+      <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
+        {modo === "login" ? "Acceso al panel" : "Crear cuenta de administrador"}
       </h1>
 
       <div className="mt-6 flex flex-col gap-4">
-        <label className="flex flex-col gap-1">
-          <span className="font-medium">Correo</span>
-          <input
+        <label className="flex flex-col gap-1.5">
+          <span className="font-medium text-ink">Correo</span>
+          <TextInput
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded-md border border-slate-400 px-3 py-2 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-900"
+            autoComplete="email"
           />
         </label>
-        <label className="flex flex-col gap-1">
-          <span className="font-medium">Contraseña</span>
-          <input
+        <label className="flex flex-col gap-1.5">
+          <span className="font-medium text-ink">Contraseña</span>
+          <TextInput
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-slate-400 px-3 py-2 text-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-900"
+            autoComplete={modo === "login" ? "current-password" : "new-password"}
           />
         </label>
       </div>
 
       {mensaje && (
-        <p
-          role="alert"
-          className={`mt-4 rounded-md px-4 py-2 ${
-            mensaje.tipo === "ok" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"
-          }`}
-        >
-          {mensaje.texto}
-        </p>
+        <div className="mt-4">
+          <Alert tono={mensaje.tipo === "ok" ? "ok" : "error"}>{mensaje.texto}</Alert>
+        </div>
       )}
 
-      <button
-        onClick={enviar}
-        disabled={cargando || !email || !password}
-        className="mt-6 rounded-md bg-blue-900 px-6 py-3 text-lg font-semibold text-white hover:bg-blue-800 disabled:opacity-40"
-      >
+      <Button onClick={enviar} disabled={cargando || !email || !password} className="mt-6">
         {cargando ? "Un momento..." : modo === "login" ? "Iniciar sesion" : "Crear cuenta"}
-      </button>
+      </Button>
 
       <button
         onClick={() => setModo(modo === "login" ? "signup" : "login")}
-        className="mt-4 text-sm text-blue-900 underline"
+        className="mt-4 text-sm font-medium text-brand underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         {modo === "login" ? "No tengo cuenta, crear una" : "Ya tengo cuenta, iniciar sesion"}
       </button>
