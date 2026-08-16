@@ -1,19 +1,24 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
 import { obtenerConfiguracion, listarEncuestas } from "@/lib/storage";
 import { calcularPrioridades } from "@/lib/scoring";
-import type { Encuesta } from "@/lib/types";
+import type { Configuracion, Encuesta } from "@/lib/types";
 
 export default function AdminPage() {
-  const config = useMemo(() => obtenerConfiguracion(), []);
-  const [encuestas, setEncuestas] = useState<Encuesta[]>(() => listarEncuestas());
+  const [config, setConfig] = useState<Configuracion | null>(null);
+  const [encuestas, setEncuestas] = useState<Encuesta[]>([]);
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
 
+  useEffect(() => {
+    obtenerConfiguracion().then(setConfig);
+    listarEncuestas().then(setEncuestas);
+  }, []);
+
   const prioridades = useMemo(
-    () => calcularPrioridades(encuestas, config),
+    () => (config ? calcularPrioridades(encuestas, config) : new Map<string, number>()),
     [encuestas, config]
   );
 
@@ -26,14 +31,15 @@ export default function AdminPage() {
   );
 
   function nivelDe(encuesta: Encuesta) {
-    return config.puntuacion.rangosNivel.find((r) => r.id === encuesta.nivelId);
+    return config?.puntuacion.rangosNivel.find((r) => r.id === encuesta.nivelId);
   }
 
   function preguntaDe(id: string) {
-    return config.preguntas.find((p) => p.id === id);
+    return config?.preguntas.find((p) => p.id === id);
   }
 
   function exportarExcel() {
+    if (!config) return;
     const filasExcel = filas.map((e) => ({
       Prioridad: prioridades.get(e.id),
       Participante: e.participante,
@@ -52,7 +58,15 @@ export default function AdminPage() {
   }
 
   function recargar() {
-    setEncuestas(listarEncuestas());
+    listarEncuestas().then(setEncuestas);
+  }
+
+  if (!config) {
+    return (
+      <main id="contenido" className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
+        <p className="text-slate-600">Cargando panel...</p>
+      </main>
+    );
   }
 
   return (

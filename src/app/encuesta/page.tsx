@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { Encuesta, RespuestaPregunta } from "@/lib/types";
+import type { Configuracion, Encuesta, RespuestaPregunta } from "@/lib/types";
 import { obtenerConfiguracion, guardarEncuesta } from "@/lib/storage";
 import {
   calcularNivel,
@@ -14,7 +14,10 @@ import {
 type Paso = "datos" | "discapacidad" | "preguntas" | "resultado";
 
 export default function EncuestaPage() {
-  const config = useMemo(() => obtenerConfiguracion(), []);
+  const [config, setConfig] = useState<Configuracion | null>(null);
+  useEffect(() => {
+    obtenerConfiguracion().then(setConfig);
+  }, []);
 
   const [paso, setPaso] = useState<Paso>("datos");
   const [participante, setParticipante] = useState("");
@@ -26,8 +29,8 @@ export default function EncuestaPage() {
   const [resultado, setResultado] = useState<Encuesta | null>(null);
 
   const preguntas = useMemo(
-    () => (discapacidad ? preguntasVisibles(config.preguntas, discapacidad) : []),
-    [config.preguntas, discapacidad]
+    () => (config && discapacidad ? preguntasVisibles(config.preguntas, discapacidad) : []),
+    [config, discapacidad]
   );
 
   function elegirOpcion(preguntaId: string, opcionId: string, unica: boolean) {
@@ -62,7 +65,8 @@ export default function EncuestaPage() {
     setPaso("preguntas");
   }
 
-  function finalizar() {
+  async function finalizar() {
+    if (!config) return;
     const faltantes = preguntas.filter(
       (p) => (p.tipo === "unica" || p.tipo === "multiple") && !(seleccion[p.id]?.length)
     );
@@ -102,14 +106,23 @@ export default function EncuestaPage() {
       prioridad: null, // se calcula al momento de listar/rankear en el admin
     };
 
-    guardarEncuesta(encuesta);
+    await guardarEncuesta(encuesta);
     setResultado(encuesta);
     setPaso("resultado");
   }
 
-  const nivel = resultado
-    ? config.puntuacion.rangosNivel.find((r) => r.id === resultado.nivelId)
-    : null;
+  const nivel =
+    resultado && config
+      ? config.puntuacion.rangosNivel.find((r) => r.id === resultado.nivelId)
+      : null;
+
+  if (!config) {
+    return (
+      <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
+        <p className="text-slate-600">Cargando encuesta...</p>
+      </main>
+    );
+  }
 
   return (
     <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">

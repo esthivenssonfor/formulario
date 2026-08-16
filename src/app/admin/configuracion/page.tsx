@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   obtenerConfiguracion,
@@ -14,14 +14,20 @@ import type { Configuracion } from "@/lib/types";
 // direccion (define la prioridad), reglas de filtrado por discapacidad
 // (mostrarSiDiscapacidad) y opciones que no otorgan puntos (puntos: 0).
 export default function ConfiguracionPage() {
-  const [texto, setTexto] = useState(() =>
-    JSON.stringify(obtenerConfiguracion(), null, 2)
-  );
+  const [texto, setTexto] = useState("");
+  const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(
     null
   );
 
-  function guardar() {
+  useEffect(() => {
+    obtenerConfiguracion().then((config) => {
+      setTexto(JSON.stringify(config, null, 2));
+      setCargando(false);
+    });
+  }, []);
+
+  async function guardar() {
     try {
       const parsed = JSON.parse(texto) as Configuracion;
       if (!Array.isArray(parsed.preguntas) || !Array.isArray(parsed.tiposDiscapacidad)) {
@@ -30,7 +36,7 @@ export default function ConfiguracionPage() {
       if (!parsed.puntuacion?.rangosNivel?.length) {
         throw new Error("Faltan 'puntuacion.rangosNivel'.");
       }
-      guardarConfiguracion(parsed);
+      await guardarConfiguracion(parsed);
       setMensaje({ tipo: "ok", texto: "Configuracion guardada correctamente." });
     } catch (err) {
       setMensaje({
@@ -40,10 +46,10 @@ export default function ConfiguracionPage() {
     }
   }
 
-  function restaurar() {
-    const demo = restaurarConfiguracionDemo();
+  async function restaurar() {
+    const demo = await restaurarConfiguracionDemo();
     setTexto(JSON.stringify(demo, null, 2));
-    setMensaje({ tipo: "ok", texto: "Configuracion DEMO restaurada." });
+    setMensaje({ tipo: "ok", texto: "Configuracion oficial restaurada." });
   }
 
   return (
@@ -76,8 +82,9 @@ export default function ConfiguracionPage() {
       <label className="mt-4 flex flex-col gap-2">
         <span className="font-medium">Configuracion (JSON)</span>
         <textarea
-          value={texto}
+          value={cargando ? "Cargando..." : texto}
           onChange={(e) => setTexto(e.target.value)}
+          disabled={cargando}
           spellCheck={false}
           className="h-[520px] w-full rounded-md border border-slate-400 p-3 font-mono text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-900"
         />
@@ -86,15 +93,17 @@ export default function ConfiguracionPage() {
       <div className="mt-4 flex gap-3">
         <button
           onClick={guardar}
-          className="rounded-md bg-blue-900 px-6 py-3 font-semibold text-white hover:bg-blue-800"
+          disabled={cargando}
+          className="rounded-md bg-blue-900 px-6 py-3 font-semibold text-white hover:bg-blue-800 disabled:opacity-40"
         >
           Guardar
         </button>
         <button
           onClick={restaurar}
-          className="rounded-md border-2 border-slate-400 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50"
+          disabled={cargando}
+          className="rounded-md border-2 border-slate-400 px-6 py-3 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
         >
-          Restaurar configuracion DEMO
+          Restaurar configuracion oficial
         </button>
       </div>
     </main>
