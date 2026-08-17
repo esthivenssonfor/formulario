@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   // El llenado de la encuesta sigue funcionando sin señal gracias a la
   // cola offline de src/lib/offline-queue.ts (localStorage del WebView).
   server: {
-    url: 'https://formulario-esthivensson.vercel.app',
+    url: 'https://fundimopla.vercel.app',
     androidScheme: 'https',
   },
 };
