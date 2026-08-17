@@ -1,5 +1,18 @@
 export type TipoPregunta = "unica" | "multiple" | "texto" | "fecha" | "numero";
 
+export type Rol = "admin" | "user";
+
+export interface Profile {
+  id: string;
+  username: string;
+  // correo de contacto real (opcional) -- NO se usa para iniciar sesion,
+  // el login es por username (ver src/lib/config.ts).
+  email: string | null;
+  nombre: string | null;
+  role: Rol;
+  activo: boolean;
+}
+
 export interface TipoDiscapacidad {
   id: string;
   etiqueta: string;

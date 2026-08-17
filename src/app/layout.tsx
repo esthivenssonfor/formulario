@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { FUNDACION_NOMBRE, FUNDACION_NOMBRE_COMPLETO } from "@/lib/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,9 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sistema de Evaluacion de Vulnerabilidad",
-  description:
-    "Encuesta accesible de evaluacion de vulnerabilidad para personas con discapacidad.",
+  title: `${FUNDACION_NOMBRE} — Sistema de Evaluación de Vulnerabilidad`,
+  description: `Encuesta accesible de evaluación de vulnerabilidad para personas con discapacidad — ${FUNDACION_NOMBRE_COMPLETO}.`,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

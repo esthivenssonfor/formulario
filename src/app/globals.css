@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: oklch(0.99 0.004 85);
-  --surface: oklch(0.975 0.007 70);
-  --surface-2: oklch(0.95 0.011 60);
-  --ink: oklch(0.24 0.02 45);
-  --ink-muted: oklch(0.42 0.025 45);
-  --line: oklch(0.86 0.012 60);
-  --line-strong: oklch(0.72 0.02 55);
+  --background: oklch(0.99 0.003 250);
+  --surface: oklch(0.97 0.006 245);
+  --surface-2: oklch(0.94 0.012 240);
+  --ink: oklch(0.2 0.02 250);
+  --ink-muted: oklch(0.4 0.02 248);
+  --line: oklch(0.85 0.014 240);
+  --line-strong: oklch(0.7 0.018 240);
 
-  --brand: oklch(0.53 0.17 35);
-  --brand-strong: oklch(0.44 0.17 32);
-  --brand-soft: oklch(0.94 0.04 40);
-  --brand-ink: oklch(0.99 0.003 85);
+  --brand: oklch(0.48 0.17 255);
+  --brand-strong: oklch(0.38 0.17 256);
+  --brand-soft: oklch(0.93 0.045 240);
+  --brand-ink: oklch(0.99 0.003 250);
 
-  --accent: oklch(0.46 0.09 220);
-  --accent-soft: oklch(0.93 0.025 220);
+  --accent: oklch(0.55 0.12 220);
+  --accent-soft: oklch(0.93 0.03 220);
 
   --success: oklch(0.55 0.13 155);
   --success-soft: oklch(0.94 0.05 155);
@@ -73,18 +73,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.2 0.012 45);
-    --surface: oklch(0.24 0.014 45);
-    --surface-2: oklch(0.28 0.017 45);
-    --ink: oklch(0.95 0.006 60);
-    --ink-muted: oklch(0.78 0.014 55);
-    --line: oklch(0.35 0.016 50);
-    --line-strong: oklch(0.46 0.02 50);
+    --background: oklch(0.18 0.02 250);
+    --surface: oklch(0.22 0.022 250);
+    --surface-2: oklch(0.26 0.025 250);
+    --ink: oklch(0.95 0.006 245);
+    --ink-muted: oklch(0.78 0.015 245);
+    --line: oklch(0.34 0.02 245);
+    --line-strong: oklch(0.46 0.025 245);
 
-    --brand: oklch(0.68 0.15 38);
-    --brand-strong: oklch(0.76 0.13 42);
-    --brand-soft: oklch(0.32 0.06 40);
-    --brand-ink: oklch(0.15 0.01 40);
+    --brand: oklch(0.68 0.15 250);
+    --brand-strong: oklch(0.76 0.13 252);
+    --brand-soft: oklch(0.3 0.06 245);
+    --brand-ink: oklch(0.14 0.01 250);
 
     --accent: oklch(0.72 0.09 220);
     --accent-soft: oklch(0.28 0.05 220);

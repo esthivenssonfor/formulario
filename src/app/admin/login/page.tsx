@@ -4,29 +4,35 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { Alert, Button, TextInput } from "@/components/ui";
+import { Logo } from "@/components/logo";
+import { emailInternoDeUsuario, FUNDACION_NOMBRE } from "@/lib/config";
+
+const MENSAJES_ERROR: Record<string, string> = {
+  "Invalid login credentials": "Usuario o contraseña incorrectos.",
+  "Email not confirmed": "Esta cuenta todavia no fue confirmada.",
+};
 
 export default function LoginPage() {
   const router = useRouter();
-  const [modo, setModo] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [cargando, setCargando] = useState(false);
-  const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  async function enviar() {
+  async function enviar(e: React.FormEvent) {
+    e.preventDefault();
+    if (cargando) return;
     setCargando(true);
-    setMensaje(null);
-    const { error } =
-      modo === "login"
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password });
-    setCargando(false);
+    setError(null);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: emailInternoDeUsuario(usuario),
+      password,
+    });
     if (error) {
-      setMensaje({ tipo: "error", texto: error.message });
+      setCargando(false);
+      setError(MENSAJES_ERROR[error.message] ?? error.message);
       return;
-    }
-    if (modo === "signup") {
-      setMensaje({ tipo: "ok", texto: "Cuenta creada. Iniciando sesion..." });
     }
     router.push("/admin");
     router.refresh();
@@ -37,48 +43,63 @@ export default function LoginPage() {
       id="contenido"
       className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-12"
     >
-      <p className="text-sm font-semibold text-brand">Panel administrativo</p>
-      <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
-        {modo === "login" ? "Acceso al panel" : "Crear cuenta de administrador"}
-      </h1>
-
-      <div className="mt-6 flex flex-col gap-4">
-        <label className="flex flex-col gap-1.5">
-          <span className="font-medium text-ink">Correo</span>
-          <TextInput
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-          />
-        </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="font-medium text-ink">Contraseña</span>
-          <TextInput
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete={modo === "login" ? "current-password" : "new-password"}
-          />
-        </label>
+      <div className="flex flex-col items-center text-center">
+        <Logo size="lg" />
+        <p className="mt-4 text-sm font-semibold text-brand">{FUNDACION_NOMBRE}</p>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
+          Acceso al panel administrativo
+        </h1>
+        <p className="mt-1 text-sm text-ink-muted">
+          Ingresa con la cuenta que te asigno el administrador del sistema.
+        </p>
       </div>
 
-      {mensaje && (
-        <div className="mt-4">
-          <Alert tono={mensaje.tipo === "ok" ? "ok" : "error"}>{mensaje.texto}</Alert>
-        </div>
-      )}
+      <form onSubmit={enviar} className="mt-8 flex flex-col gap-4" noValidate>
+        <label className="flex flex-col gap-1.5">
+          <span className="font-medium text-ink">
+            Usuario <span aria-hidden="true" className="text-danger">*</span>
+          </span>
+          <TextInput
+            type="text"
+            required
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            autoFocus
+          />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="font-medium text-ink">
+            Contraseña <span aria-hidden="true" className="text-danger">*</span>
+          </span>
+          <div className="relative">
+            <TextInput
+              type={mostrarPassword ? "text" : "password"}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              className="pr-20"
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarPassword((v) => !v)}
+              className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
+              aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {mostrarPassword ? "Ocultar" : "Mostrar"}
+            </button>
+          </div>
+        </label>
 
-      <Button onClick={enviar} disabled={cargando || !email || !password} className="mt-6">
-        {cargando ? "Un momento..." : modo === "login" ? "Iniciar sesion" : "Crear cuenta"}
-      </Button>
+        {error && <Alert tono="error">{error}</Alert>}
 
-      <button
-        onClick={() => setModo(modo === "login" ? "signup" : "login")}
-        className="mt-4 text-sm font-medium text-brand underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-      >
-        {modo === "login" ? "No tengo cuenta, crear una" : "Ya tengo cuenta, iniciar sesion"}
-      </button>
+        <Button type="submit" disabled={cargando || !usuario || !password} className="mt-2">
+          {cargando ? "Verificando..." : "Iniciar sesion"}
+        </Button>
+      </form>
     </main>
   );
 }

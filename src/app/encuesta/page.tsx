@@ -12,6 +12,7 @@ import {
   preguntasVisibles,
 } from "@/lib/scoring";
 import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
+import { Header } from "@/components/header";
 
 type Paso = "datos" | "discapacidad" | "preguntas" | "resultado";
 
@@ -46,15 +47,18 @@ function PasoIndicador({ paso }: { paso: Paso }) {
 
 export default function EncuestaPage() {
   return (
-    <Suspense
-      fallback={
-        <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
-          <p className="text-ink-muted">Cargando encuesta...</p>
-        </main>
-      }
-    >
-      <EncuestaContenido />
-    </Suspense>
+    <>
+      <Header />
+      <Suspense
+        fallback={
+          <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
+            <p className="text-ink-muted">Cargando encuesta...</p>
+          </main>
+        }
+      >
+        <EncuestaContenido />
+      </Suspense>
+    </>
   );
 }
 
