@@ -37,7 +37,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+
+    // Si el navegador restaura la pagina desde bfcache (boton "atras" o
+    // volver a una pestaña congelada) React no vuelve a montar nada, asi
+    // que sin esto se veria el estado de sesion de ANTES de cerrar
+    // sesion. Se fuerza una relectura real contra Supabase al restaurar.
+    function alRestaurarDesdeCache(e: PageTransitionEvent) {
+      if (e.persisted) supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    }
+    window.addEventListener("pageshow", alRestaurarDesdeCache);
+
+    return () => {
+      sub.subscription.unsubscribe();
+      window.removeEventListener("pageshow", alRestaurarDesdeCache);
+    };
   }, []);
 
   useEffect(() => {
