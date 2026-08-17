@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui";
+import { UserMenu } from "@/components/user-menu";
 
 /** Exige sesion iniciada para TODA la app (solo /login queda afuera). */
 function Gate({ children }: { children: React.ReactNode }) {
@@ -49,25 +49,13 @@ function Gate({ children }: { children: React.ReactNode }) {
     <>
       <Header
         acciones={
-          <>
-            {profile && (
-              <span className="hidden text-sm text-ink-muted sm:inline">{profile.username}</span>
-            )}
-            {esAdmin && (
-              <Link href="/admin/usuarios">
-                <Button variant="secondary" className="px-3 py-1.5 text-sm">
-                  Usuarios
-                </Button>
-              </Link>
-            )}
-            <Button
-              variant="ghost"
-              onClick={() => signOut().then(() => router.push("/login"))}
-              className="border border-danger/40 px-3 py-1.5 text-sm text-danger hover:bg-danger-soft"
-            >
-              Cerrar sesion
-            </Button>
-          </>
+          profile && (
+            <UserMenu
+              profile={profile}
+              esAdmin={esAdmin}
+              onCerrarSesion={() => signOut().then(() => router.push("/login"))}
+            />
+          )
         }
       />
       {children}

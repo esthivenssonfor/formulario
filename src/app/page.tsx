@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
@@ -67,14 +68,12 @@ export default function Home() {
           <p className="mt-1 text-sm text-ink-muted">
             Tambien podes usar el sistema desde la web, sin instalar nada.
           </p>
-          <a
-            href={URL_WEB}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => Browser.open({ url: URL_WEB })}
             className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border-2 border-brand px-5 py-3 font-semibold text-brand transition-colors duration-150 hover:bg-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             Abrir en el navegador
-          </a>
+          </button>
         </div>
       ) : (
         <div className="rounded-xl border border-line bg-surface p-6">
