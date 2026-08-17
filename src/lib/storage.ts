@@ -7,15 +7,6 @@ import type { Configuracion, Encuesta, Pregunta, RespuestaPregunta } from "./typ
 // publica (RLS permite select anonimo); guardarConfiguracion() y la lectura
 // de encuestas/respuestas requieren sesion de Supabase Auth (panel admin).
 
-/** Nombres de usuarios activos, para el selector de "encuestador" en /encuesta
- * (formulario publico). Lee la vista publica encuestadores (id + nombre
- * solamente) -- nunca username/email/rol. */
-export async function listarEncuestadores(): Promise<{ id: string; nombre: string }[]> {
-  const { data, error } = await supabase.from("encuestadores").select("id, nombre").order("nombre");
-  if (error) throw error;
-  return data ?? [];
-}
-
 export async function obtenerConfiguracion(): Promise<Configuracion> {
   const [tiposRes, preguntasRes, opcionesRes, rangosRes, puntuacionRes] = await Promise.all([
     supabase.from("tipos_discapacidad").select("*"),
@@ -203,4 +194,11 @@ export async function guardarEncuesta(encuesta: Encuesta): Promise<void> {
 export async function obtenerEncuesta(id: string): Promise<Encuesta | undefined> {
   const encuestas = await listarEncuestas();
   return encuestas.find((e) => e.id === id);
+}
+
+/** Requiere sesion de admin (RLS). Las respuestas se borran solas via
+ * "on delete cascade" en la FK hacia encuestas. */
+export async function eliminarEncuesta(id: string): Promise<void> {
+  const { error } = await supabase.from("encuestas").delete().eq("id", id);
+  if (error) throw error;
 }

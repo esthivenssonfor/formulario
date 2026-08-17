@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthState | null>(null);
 async function cargarPerfil(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, nombre, role, activo")
+    .select("id, username, email, nombre, role, activo")
     .eq("id", userId)
     .maybeSingle();
   if (error) return null;

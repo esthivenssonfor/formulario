@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { FUNDACION_NOMBRE, FUNDACION_NOMBRE_COMPLETO } from "@/lib/config";
+import { AppGate } from "@/components/app-gate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Saltar al contenido principal
         </a>
-        {children}
+        <AppGate>{children}</AppGate>
       </body>
     </html>
   );

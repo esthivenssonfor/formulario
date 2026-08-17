@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 import { Alert, Button, TextInput } from "@/components/ui";
 import { Logo } from "@/components/logo";
@@ -50,7 +49,7 @@ export default function LoginPage() {
     } else {
       localStorage.removeItem(CLAVE_USUARIO_RECORDADO);
     }
-    router.push("/admin");
+    router.push("/");
     router.refresh();
   }
 
@@ -59,18 +58,10 @@ export default function LoginPage() {
       id="contenido"
       className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-12"
     >
-      <Link href="/" className="self-start">
-        <Button variant="ghost" className="border border-line px-3 py-1.5 text-sm">
-          ← Atras
-        </Button>
-      </Link>
-
-      <div className="mt-6 flex flex-col items-center text-center">
+      <div className="flex flex-col items-center text-center">
         <Logo size="lg" />
         <p className="mt-4 text-sm font-semibold text-brand">{FUNDACION_NOMBRE}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
-          Acceso al panel administrativo
-        </h1>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">Iniciar sesion</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Ingresa con la cuenta que te asigno el administrador del sistema.
         </p>

@@ -3,15 +3,25 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import * as XLSX from "xlsx";
-import { obtenerConfiguracion, listarEncuestas } from "@/lib/storage";
+import { obtenerConfiguracion, listarEncuestas, eliminarEncuesta } from "@/lib/storage";
 import { calcularPrioridades } from "@/lib/scoring";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase-client";
+import { emailInternoDeUsuario } from "@/lib/config";
 import type { Configuracion, Encuesta } from "@/lib/types";
-import { Button, NivelBadge } from "@/components/ui";
+import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
 
 export default function AdminPage() {
+  const { profile } = useAuth();
   const [config, setConfig] = useState<Configuracion | null>(null);
   const [encuestas, setEncuestas] = useState<Encuesta[]>([]);
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
+
+  // eliminar una encuesta pide re-confirmar la contraseña del admin logueado.
+  const [aEliminar, setAEliminar] = useState<Encuesta | null>(null);
+  const [passwordConfirmar, setPasswordConfirmar] = useState("");
+  const [eliminando, setEliminando] = useState(false);
+  const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
 
   useEffect(() => {
     obtenerConfiguracion().then(setConfig);
@@ -50,7 +60,7 @@ export default function AdminPage() {
     const filasExcel = filas.map((e) => ({
       Prioridad: prioridades.get(e.id),
       Encuestador: e.encuestador,
-      Participante: e.participante,
+      Encuestado: e.participante,
       Edad: e.edad ?? "",
       Discapacidad: discapacidadDe(e),
       Puntaje: e.puntajeTotal,
@@ -65,6 +75,44 @@ export default function AdminPage() {
 
   function recargar() {
     listarEncuestas().then(setEncuestas);
+  }
+
+  function pedirEliminar(e: Encuesta) {
+    setAEliminar(e);
+    setPasswordConfirmar("");
+    setErrorEliminar(null);
+  }
+
+  function cancelarEliminar() {
+    setAEliminar(null);
+    setPasswordConfirmar("");
+    setErrorEliminar(null);
+  }
+
+  async function confirmarEliminar() {
+    if (!aEliminar || !profile) return;
+    setEliminando(true);
+    setErrorEliminar(null);
+    // re-valida la contraseña del admin actual antes de borrar (no cambia
+    // la sesion activa, solo confirma que la contraseña es correcta).
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: emailInternoDeUsuario(profile.username),
+      password: passwordConfirmar,
+    });
+    if (authError) {
+      setEliminando(false);
+      setErrorEliminar("Contraseña incorrecta.");
+      return;
+    }
+    try {
+      await eliminarEncuesta(aEliminar.id);
+      cancelarEliminar();
+      recargar();
+    } catch (err) {
+      setErrorEliminar(err instanceof Error ? err.message : "Error al eliminar.");
+    } finally {
+      setEliminando(false);
+    }
   }
 
   if (!config) {
@@ -84,7 +132,7 @@ export default function AdminPage() {
       </Link>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight text-ink">Panel administrativo</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-ink">Encuestas</h1>
         <div className="flex flex-wrap gap-3">
           <Link
             href="/admin/configuracion"
@@ -125,7 +173,7 @@ export default function AdminPage() {
             <thead>
               <tr className="border-b border-line bg-surface text-sm text-ink-muted">
                 <th className="px-4 py-3 font-semibold">Prioridad</th>
-                <th className="px-4 py-3 font-semibold">Participante</th>
+                <th className="px-4 py-3 font-semibold">Encuestado</th>
                 <th className="px-4 py-3 font-semibold">Discapacidad</th>
                 <th className="px-4 py-3 font-semibold">Puntaje</th>
                 <th className="px-4 py-3 font-semibold">Nivel</th>
@@ -141,19 +189,23 @@ export default function AdminPage() {
                     <tr className="border-b border-line last:border-0 hover:bg-surface">
                       <td className="px-4 py-3 font-semibold text-ink">{prioridades.get(e.id)}</td>
                       <td className="px-4 py-3 text-ink">{e.participante}</td>
-                      <td className="px-4 py-3 text-ink-muted">
-                        {config.tiposDiscapacidad.find((t) => t.id === e.discapacidad)?.etiqueta}
-                      </td>
+                      <td className="px-4 py-3 text-ink-muted">{discapacidadDe(e)}</td>
                       <td className="px-4 py-3 text-ink">{e.puntajeTotal}</td>
                       <td className="px-4 py-3">
                         {nivel && <NivelBadge tono={nivel.id}>{nivel.nombre}</NivelBadge>}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 whitespace-nowrap text-right">
                         <button
                           onClick={() => setExpandidoId(expandido ? null : e.id)}
-                          className="font-medium text-brand underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                          className="mr-4 font-medium text-brand underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                         >
                           {expandido ? "Ocultar" : "Ver detalle"}
+                        </button>
+                        <button
+                          onClick={() => pedirEliminar(e)}
+                          className="font-medium text-danger underline underline-offset-2"
+                        >
+                          Eliminar
                         </button>
                       </td>
                     </tr>
@@ -185,6 +237,53 @@ export default function AdminPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {aEliminar && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="titulo-eliminar"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        >
+          <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-6">
+            <h2 id="titulo-eliminar" className="text-lg font-semibold text-ink">
+              Eliminar encuesta
+            </h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              Vas a eliminar la encuesta de <strong className="text-ink">{aEliminar.participante}</strong>.
+              Esta accion no se puede deshacer. Confirma tu contraseña de administrador para
+              continuar.
+            </p>
+            <label className="mt-4 flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Tu contraseña</span>
+              <TextInput
+                type="password"
+                value={passwordConfirmar}
+                onChange={(e) => setPasswordConfirmar(e.target.value)}
+                autoComplete="current-password"
+                autoFocus
+              />
+            </label>
+            {errorEliminar && (
+              <div className="mt-3">
+                <Alert tono="error">{errorEliminar}</Alert>
+              </div>
+            )}
+            <div className="mt-5 flex justify-end gap-3">
+              <Button variant="ghost" onClick={cancelarEliminar} disabled={eliminando}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={confirmarEliminar}
+                disabled={eliminando || !passwordConfirmar}
+                className="bg-danger text-brand-ink hover:bg-danger"
+              >
+                {eliminando ? "Eliminando..." : "Eliminar"}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </main>

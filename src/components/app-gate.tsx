@@ -7,15 +7,16 @@ import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui";
 
-function AdminGate({ children }: { children: React.ReactNode }) {
+/** Exige sesion iniciada para TODA la app (solo /login queda afuera). */
+function Gate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { session, profile, cargando, esAdmin, signOut } = useAuth();
 
-  const esLogin = pathname === "/admin/login";
+  const esLogin = pathname === "/login";
 
   useEffect(() => {
-    if (!esLogin && session === null) router.replace("/admin/login");
+    if (!esLogin && session === null) router.replace("/login");
   }, [esLogin, session, router]);
 
   if (esLogin) return <>{children}</>;
@@ -35,7 +36,7 @@ function AdminGate({ children }: { children: React.ReactNode }) {
         <p className="mt-2 text-ink-muted">Contacta al administrador del sistema.</p>
         <Button
           variant="secondary"
-          onClick={() => signOut().then(() => router.push("/admin/login"))}
+          onClick={() => signOut().then(() => router.push("/login"))}
           className="mt-6"
         >
           Cerrar sesion
@@ -47,7 +48,6 @@ function AdminGate({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header
-        href="/admin"
         acciones={
           <>
             {esAdmin && (
@@ -59,7 +59,7 @@ function AdminGate({ children }: { children: React.ReactNode }) {
             )}
             <Button
               variant="ghost"
-              onClick={() => signOut().then(() => router.push("/admin/login"))}
+              onClick={() => signOut().then(() => router.push("/login"))}
               className="border border-danger/40 px-3 py-1.5 text-sm text-danger hover:bg-danger-soft"
             >
               Cerrar sesion ({profile?.username ?? "..."})
@@ -72,10 +72,10 @@ function AdminGate({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export function AppGate({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <AdminGate>{children}</AdminGate>
+      <Gate>{children}</Gate>
     </AuthProvider>
   );
 }

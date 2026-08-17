@@ -4,8 +4,9 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Configuracion, Encuesta, RespuestaPregunta } from "@/lib/types";
-import { obtenerConfiguracion, listarEncuestadores } from "@/lib/storage";
+import { obtenerConfiguracion } from "@/lib/storage";
 import { guardarEncuestaConCola, iniciarSincronizacionAutomatica } from "@/lib/offline-queue";
+import { useAuth } from "@/lib/auth-context";
 import {
   calcularNivel,
   calcularPuntajeTotal,
@@ -13,7 +14,6 @@ import {
   preguntasVisibles,
 } from "@/lib/scoring";
 import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
-import { Header } from "@/components/header";
 
 // Un "unica" con muchas opciones se muestra como <select> (menu) en vez de
 // radios largos -- mejor UX para listas como nacionalidad.
@@ -64,24 +64,22 @@ function PasoIndicador({ paso }: { paso: Paso }) {
 
 export default function EncuestaPage() {
   return (
-    <>
-      <Header />
-      <Suspense
-        fallback={
-          <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
-            <p className="text-ink-muted">Cargando encuesta...</p>
-          </main>
-        }
-      >
-        <EncuestaContenido />
-      </Suspense>
-    </>
+    <Suspense
+      fallback={
+        <main id="contenido" className="mx-auto w-full max-w-2xl flex-1 px-6 py-12">
+          <p className="text-ink-muted">Cargando encuesta...</p>
+        </main>
+      }
+    >
+      <EncuestaContenido />
+    </Suspense>
   );
 }
 
 function EncuestaContenido() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { profile } = useAuth();
   // El paso vive en la URL (?paso=...) para que el boton atras del
   // navegador/celular navegue entre los pasos de la encuesta en vez de
   // sacar al usuario de la pagina.
@@ -92,9 +90,6 @@ function EncuestaContenido() {
   }
 
   const [config, setConfig] = useState<Configuracion | null>(null);
-  const [encuestadores, setEncuestadores] = useState<{ id: string; nombre: string }[]>([]);
-  const [encuestador, setEncuestador] = useState("");
-  const [encuestadorOtro, setEncuestadorOtro] = useState("");
   const [seleccion, setSeleccion] = useState<Record<string, string[]>>({});
   // texto libre cuando la opcion elegida es "Otra" (cualquier pregunta de
   // seleccion unica/multiple, no solo nacionalidad).
@@ -105,11 +100,13 @@ function EncuestaContenido() {
   const [enviando, setEnviando] = useState(false);
   const [sincronizada, setSincronizada] = useState(true);
 
+  // El encuestador es quien inicio sesion -- no se pide ni se elige.
+  const encuestador = profile?.nombre || profile?.username || "";
+
   // reintenta enviar encuestas guardadas offline en cuanto vuelve la señal.
   useEffect(() => iniciarSincronizacionAutomatica(), []);
 
   useEffect(() => {
-    listarEncuestadores().then(setEncuestadores).catch(() => setEncuestadores([]));
     obtenerConfiguracion().then((c) => {
       setConfig(c);
       // "Dominicana" preseleccionada en nacionalidad -- se puede cambiar.
@@ -149,16 +146,6 @@ function EncuestaContenido() {
     });
   }
 
-  function enviarPaso1() {
-    const nombreFinal = encuestador === "__otro__" ? encuestadorOtro.trim() : encuestador;
-    if (!nombreFinal) {
-      setError("Selecciona (o escribe) quien realiza la encuesta.");
-      return;
-    }
-    setError(null);
-    irAPaso("preguntas");
-  }
-
   async function finalizar() {
     if (!config) return;
     const faltantes = preguntas.filter(
@@ -193,7 +180,7 @@ function EncuestaContenido() {
 
     const encuesta: Encuesta = {
       id: crypto.randomUUID(),
-      encuestador: encuestador === "__otro__" ? encuestadorOtro.trim() : encuestador,
+      encuestador,
       participante: valorDe(respuestas, "q_nombre") || "(sin nombre)",
       edad: edadTexto ? Number(edadTexto) : null,
       discapacidad: null,
@@ -234,45 +221,20 @@ function EncuestaContenido() {
       {paso === "datos" && (
         <section aria-labelledby="titulo-paso">
           <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
-            ¿Quien realiza esta encuesta?
+            Vas a completar esta encuesta como
           </h1>
-          <div className="mt-6 flex flex-col gap-4">
-            <label className="flex flex-col gap-1.5">
-              <span className="font-medium text-ink">Encuestador</span>
-              <select
-                value={encuestador}
-                onChange={(e) => setEncuestador(e.target.value)}
-                autoFocus
-                className="rounded-lg border border-line-strong bg-surface px-4 py-3 text-base text-ink focus-visible:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
-              >
-                <option value="" disabled>
-                  Selecciona tu nombre
-                </option>
-                {encuestadores.map((u) => (
-                  <option key={u.id} value={u.nombre}>
-                    {u.nombre}
-                  </option>
-                ))}
-                <option value="__otro__">Otro (no esta en la lista)</option>
-              </select>
-            </label>
-            {encuestador === "__otro__" && (
-              <label className="flex flex-col gap-1.5">
-                <span className="font-medium text-ink">Nombre</span>
-                <TextInput
-                  value={encuestadorOtro}
-                  onChange={(e) => setEncuestadorOtro(e.target.value)}
-                  autoFocus
-                />
-              </label>
-            )}
-          </div>
-          {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
+          <p className="mt-4 rounded-lg border border-line bg-surface px-4 py-3 text-lg font-semibold text-ink">
+            {encuestador}
+          </p>
+          <p className="mt-2 text-sm text-ink-muted">
+            Si no sos vos quien va a hacer la encuesta, cerra sesion y entra con tu propio
+            usuario.
+          </p>
           <div className="mt-6 flex gap-3">
             <Link href="/">
               <Button variant="secondary">Atras</Button>
             </Link>
-            <Button onClick={enviarPaso1}>Continuar</Button>
+            <Button onClick={() => irAPaso("preguntas")}>Continuar</Button>
           </div>
         </section>
       )}
