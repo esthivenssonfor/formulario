@@ -545,15 +545,11 @@ export const CONFIGURACION_DEMO: Configuracion = {
     },
 
     // XII. EVALUACION Y PRIORIZACION DEL CASO
+    // El nivel de prioridad ya NO se pregunta ni se elige a mano: el sistema
+    // lo calcula solo a partir del puntaje de las respuestas anteriores y de
+    // las reglas criticas (ver puntuacion.reglasCriticas mas abajo), y se
+    // muestra bloqueado en el paso de resultado.
     { id: "q_principal_necesidad", texto: "Según la información recopilada, ¿cuál es la principal necesidad del paciente?", categoria: "evaluacion", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
-    {
-      id: "q_prioridad_caso", texto: "Nivel de prioridad del caso", categoria: "evaluacion", seccion: "XII. Evaluación y priorización del caso", peso: 2, tipo: "unica",
-      opciones: [
-        { id: "pc_alta", texto: "Alta: necesita atención o ayuda urgente", puntos: 10 },
-        { id: "pc_media", texto: "Media: necesita apoyo, pero no presenta una situación inmediata de riesgo", puntos: 5 },
-        { id: "pc_baja", texto: "Baja: necesita seguimiento o apoyo no urgente", puntos: 1 },
-      ],
-    },
     { id: "q_ayuda_recomendada", texto: "Tipo de ayuda que se recomienda gestionar", categoria: "evaluacion", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
     { id: "q_observaciones", texto: "Observaciones adicionales del encuestador", categoria: "evaluacion", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
   ],
@@ -566,6 +562,24 @@ export const CONFIGURACION_DEMO: Configuracion = {
       { id: "moderada", nombre: "Moderada", min: 41, max: 90, color: "bg-yellow-500" },
       { id: "alta", nombre: "Alta", min: 91, max: 150, color: "bg-orange-600" },
       { id: "muy_alta", nombre: "Muy alta", min: 151, max: 9999, color: "bg-red-700" },
+    ],
+    // Estas reglas fuerzan el nivel "Alta" sin importar el puntaje acumulado,
+    // para que un caso urgente no quede escondido detras de un puntaje bajo.
+    reglasCriticas: [
+      {
+        id: "rc-medicamentos",
+        descripcion: "No puede conseguir sus medicamentos",
+        preguntaId: "q_dificultad_medicamentos",
+        opcionIds: ["dm_si"],
+        nivelForzado: "alta",
+      },
+      {
+        id: "rc-transporte-terapias",
+        descripcion: "Dejo de asistir a citas medicas o terapias por falta de transporte",
+        preguntaId: "q_dejo_asistir_por_transporte",
+        opcionIds: ["dap_si"],
+        nivelForzado: "alta",
+      },
     ],
   },
 };

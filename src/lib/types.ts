@@ -50,11 +50,24 @@ export interface RangoNivel {
 
 export type DireccionPuntaje = "mayor_es_mas_vulnerable" | "menor_es_mas_vulnerable";
 
+// Regla que fuerza un nivel de prioridad sin importar el puntaje, cuando el
+// encuestado responde una opcion critica (ej. "no puede conseguir sus
+// medicamentos"). Evita que un caso urgente quede en "Baja" solo porque el
+// puntaje acumulado fue bajo.
+export interface ReglaCritica {
+  id: string;
+  descripcion: string;
+  preguntaId: string;
+  opcionIds: string[];
+  nivelForzado: string; // id de un RangoNivel
+}
+
 export interface ConfiguracionPuntuacion {
   direccion: DireccionPuntaje;
   puntajeMinimo: number;
   puntajeMaximo: number;
   rangosNivel: RangoNivel[];
+  reglasCriticas: ReglaCritica[];
 }
 
 export interface Configuracion {
@@ -86,4 +99,7 @@ export interface Encuesta {
   puntajeTotal: number;
   nivelId: string | null;
   prioridad: number | null;
+  // descripciones de las reglas criticas que se dispararon (vacio si el
+  // nivel salio solo del puntaje, sin ninguna regla critica de por medio).
+  factoresCriticos: string[];
 }

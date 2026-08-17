@@ -65,6 +65,7 @@ export default function AdminPage() {
       Discapacidad: discapacidadDe(e),
       Puntaje: e.puntajeTotal,
       Nivel: nivelDe(e)?.nombre ?? "",
+      "Factores criticos": e.factoresCriticos.join("; "),
       Fecha: new Date(e.fecha).toLocaleString("es"),
     }));
     const hoja = XLSX.utils.json_to_sheet(filasExcel);
@@ -214,6 +215,11 @@ export default function AdminPage() {
                     {expandido && (
                       <tr className="border-b border-line bg-surface">
                         <td colSpan={7} className="px-4 py-4">
+                          {e.factoresCriticos.length > 0 && (
+                            <div className="mb-3 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+                              <strong>Factores criticos:</strong> {e.factoresCriticos.join("; ")}
+                            </div>
+                          )}
                           <ul className="flex flex-col gap-2 text-sm">
                             {e.respuestas.map((r) => {
                               const pregunta = preguntaDe(r.preguntaId);

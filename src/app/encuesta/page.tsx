@@ -8,7 +8,7 @@ import { obtenerConfiguracion } from "@/lib/storage";
 import { guardarEncuestaConCola, iniciarSincronizacionAutomatica } from "@/lib/offline-queue";
 import { useAuth } from "@/lib/auth-context";
 import {
-  calcularNivel,
+  calcularNivelYFactores,
   calcularPuntajeTotal,
   calcularPuntosRespuesta,
   preguntasVisibles,
@@ -175,7 +175,7 @@ function EncuestaContenido() {
     );
 
     const puntajeTotal = calcularPuntajeTotal(respuestas);
-    const nivelId = calcularNivel(puntajeTotal, config);
+    const { nivelId, factoresCriticos } = calcularNivelYFactores(puntajeTotal, respuestas, config);
     const edadTexto = valorDe(respuestas, "q_edad");
 
     const encuesta: Encuesta = {
@@ -189,6 +189,7 @@ function EncuestaContenido() {
       puntajeTotal,
       nivelId,
       prioridad: null, // se calcula al momento de listar/rankear en el admin
+      factoresCriticos,
     };
 
     const { sincronizada: yaEnviada } = await guardarEncuestaConCola(encuesta);
@@ -359,6 +360,19 @@ function EncuestaContenido() {
             {nivel && (
               <div className="mt-3">
                 <NivelBadge tono={nivel.id}>Nivel: {nivel.nombre}</NivelBadge>
+              </div>
+            )}
+            <p className="mt-2 text-xs text-ink-muted">
+              El nivel se calcula automaticamente a partir de las respuestas; no se puede editar.
+            </p>
+            {resultado.factoresCriticos.length > 0 && (
+              <div className="mt-3 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3">
+                <p className="text-sm font-semibold text-danger">Factores criticos detectados</p>
+                <ul className="mt-1 list-disc pl-5 text-sm text-ink">
+                  {resultado.factoresCriticos.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>

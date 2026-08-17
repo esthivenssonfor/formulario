@@ -8,14 +8,15 @@ import type { Configuracion, Encuesta, Pregunta, RespuestaPregunta } from "./typ
 // de encuestas/respuestas requieren sesion de Supabase Auth (panel admin).
 
 export async function obtenerConfiguracion(): Promise<Configuracion> {
-  const [tiposRes, preguntasRes, opcionesRes, rangosRes, puntuacionRes] = await Promise.all([
+  const [tiposRes, preguntasRes, opcionesRes, rangosRes, puntuacionRes, reglasRes] = await Promise.all([
     supabase.from("tipos_discapacidad").select("*"),
     supabase.from("preguntas").select("*").order("orden"),
     supabase.from("opciones_pregunta").select("*").order("orden"),
     supabase.from("rangos_nivel").select("*").order("min"),
     supabase.from("configuracion_puntuacion").select("*").maybeSingle(),
+    supabase.from("reglas_criticas").select("*").order("orden"),
   ]);
-  for (const res of [tiposRes, preguntasRes, opcionesRes, rangosRes, puntuacionRes]) {
+  for (const res of [tiposRes, preguntasRes, opcionesRes, rangosRes, puntuacionRes, reglasRes]) {
     if (res.error) throw res.error;
   }
 
@@ -46,6 +47,13 @@ export async function obtenerConfiguracion(): Promise<Configuracion> {
         min: Number(r.min),
         max: Number(r.max),
         color: r.color,
+      })),
+      reglasCriticas: (reglasRes.data ?? []).map((r) => ({
+        id: r.id,
+        descripcion: r.descripcion,
+        preguntaId: r.pregunta_id,
+        opcionIds: r.opcion_ids ?? [],
+        nivelForzado: r.nivel_forzado,
       })),
     },
   };
@@ -116,6 +124,23 @@ export async function guardarConfiguracion(config: Configuracion): Promise<void>
     puntaje_maximo: config.puntuacion.puntajeMaximo,
   });
   if (puntuacionError) throw puntuacionError;
+
+  // reglas_criticas
+  const reglaIds = config.puntuacion.reglasCriticas.map((r) => r.id);
+  await supabase.from("reglas_criticas").delete().not("id", "in", `(${sqlList(reglaIds)})`);
+  if (config.puntuacion.reglasCriticas.length > 0) {
+    const { error } = await supabase.from("reglas_criticas").upsert(
+      config.puntuacion.reglasCriticas.map((r, idx) => ({
+        id: r.id,
+        descripcion: r.descripcion,
+        pregunta_id: r.preguntaId,
+        opcion_ids: r.opcionIds,
+        nivel_forzado: r.nivelForzado,
+        orden: idx,
+      }))
+    );
+    if (error) throw error;
+  }
 }
 
 function sqlList(ids: string[]): string {
@@ -151,6 +176,7 @@ export async function listarEncuestas(): Promise<Encuesta[]> {
     puntajeTotal: Number(e.puntaje_total),
     nivelId: e.nivel_id,
     prioridad: null,
+    factoresCriticos: e.factores_criticos ?? [],
     respuestas: (respuestasData ?? [])
       .filter((r) => r.encuesta_id === e.id)
       .map(
@@ -174,6 +200,7 @@ export async function guardarEncuesta(encuesta: Encuesta): Promise<void> {
     fecha: encuesta.fecha,
     puntaje_total: encuesta.puntajeTotal,
     nivel_id: encuesta.nivelId,
+    factores_criticos: encuesta.factoresCriticos,
   });
   if (encuestaError) throw encuestaError;
 

@@ -41,14 +41,25 @@ create table configuracion_puntuacion (
   puntaje_maximo numeric not null default 100
 );
 
+create table reglas_criticas (
+  id text primary key,
+  descripcion text not null,
+  pregunta_id text not null references preguntas(id) on delete cascade,
+  opcion_ids text[] not null default '{}',
+  nivel_forzado text not null references rangos_nivel(id),
+  orden int not null default 0
+);
+
 create table encuestas (
   id uuid primary key default gen_random_uuid(),
+  encuestador text,
   participante text not null,
   edad int,
-  discapacidad text not null references tipos_discapacidad(id),
+  discapacidad text references tipos_discapacidad(id),
   fecha timestamptz not null default now(),
   puntaje_total numeric not null,
-  nivel_id text references rangos_nivel(id)
+  nivel_id text references rangos_nivel(id),
+  factores_criticos text[] not null default '{}'
   -- prioridad NO se guarda: se calcula al consultar, es relativa al conjunto
   -- de encuestas y a la direccion configurada (ver src/lib/scoring.ts).
 );

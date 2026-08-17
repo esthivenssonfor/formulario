@@ -13,6 +13,7 @@ import type {
   OpcionPregunta,
   Pregunta,
   RangoNivel,
+  ReglaCritica,
   TipoDiscapacidad,
   TipoPregunta,
 } from "@/lib/types";
@@ -248,6 +249,83 @@ export default function ConfiguracionPage() {
     );
   }
 
+  function actualizarRegla(id: string, cambios: Partial<ReglaCritica>) {
+    setConfig((c) =>
+      c
+        ? {
+            ...c,
+            puntuacion: {
+              ...c.puntuacion,
+              reglasCriticas: c.puntuacion.reglasCriticas.map((r) =>
+                r.id === id ? { ...r, ...cambios } : r
+              ),
+            },
+          }
+        : c
+    );
+  }
+
+  function toggleOpcionRegla(reglaId: string, opcionId: string) {
+    setConfig((c) => {
+      if (!c) return c;
+      return {
+        ...c,
+        puntuacion: {
+          ...c.puntuacion,
+          reglasCriticas: c.puntuacion.reglasCriticas.map((r) => {
+            if (r.id !== reglaId) return r;
+            const yaEsta = r.opcionIds.includes(opcionId);
+            return {
+              ...r,
+              opcionIds: yaEsta ? r.opcionIds.filter((id) => id !== opcionId) : [...r.opcionIds, opcionId],
+            };
+          }),
+        },
+      };
+    });
+  }
+
+  function agregarRegla() {
+    const primeraPreguntaSeleccion = config?.preguntas.find((p) => p.tipo === "unica" || p.tipo === "multiple");
+    const primerNivel = config?.puntuacion.rangosNivel[config.puntuacion.rangosNivel.length - 1];
+    if (!primeraPreguntaSeleccion || !primerNivel) return;
+    setConfig((c) =>
+      c
+        ? {
+            ...c,
+            puntuacion: {
+              ...c.puntuacion,
+              reglasCriticas: [
+                ...c.puntuacion.reglasCriticas,
+                {
+                  id: nuevoId("regla"),
+                  descripcion: "",
+                  preguntaId: primeraPreguntaSeleccion.id,
+                  opcionIds: [],
+                  nivelForzado: primerNivel.id,
+                },
+              ],
+            },
+          }
+        : c
+    );
+  }
+
+  function quitarRegla(id: string) {
+    if (!confirm("Eliminar esta regla critica?")) return;
+    setConfig((c) =>
+      c
+        ? {
+            ...c,
+            puntuacion: {
+              ...c.puntuacion,
+              reglasCriticas: c.puntuacion.reglasCriticas.filter((r) => r.id !== id),
+            },
+          }
+        : c
+    );
+  }
+
   async function guardar() {
     if (!config) return;
     setGuardando(true);
@@ -289,6 +367,7 @@ export default function ConfiguracionPage() {
       if (!parsed.puntuacion?.rangosNivel?.length) {
         throw new Error("Faltan 'puntuacion.rangosNivel'.");
       }
+      if (!parsed.puntuacion.reglasCriticas) parsed.puntuacion.reglasCriticas = [];
       setConfig(parsed);
       setMensaje({ tipo: "ok", texto: "Cambios del JSON aplicados. Revisa y guarda." });
       setModo("visual");
@@ -603,6 +682,95 @@ export default function ConfiguracionPage() {
               ))}
               <button onClick={agregarRango} className="self-start text-sm font-medium text-brand underline underline-offset-2">
                 + Agregar rango de nivel
+              </button>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2">
+              <span className="text-sm font-medium text-ink-muted">
+                Reglas criticas (fuerzan un nivel sin importar el puntaje)
+              </span>
+              <p className="text-xs text-ink-muted">
+                Si el encuestado elige alguna de las opciones marcadas, el nivel del caso se
+                fuerza al nivel indicado, aunque el puntaje total de por si de otro nivel mas bajo.
+              </p>
+              {config.puntuacion.reglasCriticas.map((r) => {
+                const preguntaRegla = config.preguntas.find((p) => p.id === r.preguntaId);
+                return (
+                  <div key={r.id} className="rounded-lg border border-line-strong bg-background p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <TextInput
+                        value={r.descripcion}
+                        onChange={(e) => actualizarRegla(r.id, { descripcion: e.target.value })}
+                        placeholder="Descripcion (ej. 'No puede conseguir sus medicamentos')"
+                        className="min-w-0 flex-1 text-sm"
+                      />
+                      <button
+                        onClick={() => quitarRegla(r.id)}
+                        className="shrink-0 text-sm font-medium text-danger underline underline-offset-2"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <label>
+                        <span className="text-xs font-medium text-ink-muted">Pregunta</span>
+                        <select
+                          value={r.preguntaId}
+                          onChange={(e) => actualizarRegla(r.id, { preguntaId: e.target.value, opcionIds: [] })}
+                          className="mt-1 w-full rounded-lg border border-line-strong bg-surface px-2 py-2 text-sm text-ink"
+                        >
+                          {config.preguntas
+                            .filter((p) => p.tipo === "unica" || p.tipo === "multiple")
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.texto || "(sin texto)"}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span className="text-xs font-medium text-ink-muted">Nivel forzado</span>
+                        <select
+                          value={r.nivelForzado}
+                          onChange={(e) => actualizarRegla(r.id, { nivelForzado: e.target.value })}
+                          className="mt-1 w-full rounded-lg border border-line-strong bg-surface px-2 py-2 text-sm text-ink"
+                        >
+                          {config.puntuacion.rangosNivel.map((n) => (
+                            <option key={n.id} value={n.id}>
+                              {n.nombre || "(sin nombre)"}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    {preguntaRegla && (
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-ink-muted">
+                          Opciones que disparan la regla
+                        </span>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {preguntaRegla.opciones.map((o) => (
+                            <label
+                              key={o.id}
+                              className="flex items-center gap-2 rounded-lg border border-line px-2.5 py-1.5 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand-soft"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={r.opcionIds.includes(o.id)}
+                                onChange={() => toggleOpcionRegla(r.id, o.id)}
+                                className="h-4 w-4 accent-brand"
+                              />
+                              {o.texto || "(sin texto)"}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <button onClick={agregarRegla} className="self-start text-sm font-medium text-brand underline underline-offset-2">
+                + Agregar regla critica
               </button>
             </div>
           </section>
