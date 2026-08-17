@@ -227,12 +227,12 @@ function UsuariosContenido() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="flex-1 font-mono text-sm"
+                className="min-w-0 flex-1 font-mono text-sm"
               />
               <Button
                 type="button"
                 variant="ghost"
-                className="border border-line px-3"
+                className="shrink-0 border border-line px-3"
                 onClick={() => setPassword(generarPasswordInicial())}
               >
                 Generar

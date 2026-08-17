@@ -380,7 +380,7 @@ export default function ConfiguracionPage() {
                         {preguntasSeccion.map((p) => (
                           <div key={p.id} className="rounded-lg border border-line-strong bg-background p-4">
                             <div className="flex items-start justify-between gap-3">
-                              <label className="flex-1">
+                              <label className="min-w-0 flex-1">
                                 <span className="text-sm font-medium text-ink-muted">Pregunta</span>
                                 <TextArea
                                   value={p.texto}
@@ -444,7 +444,7 @@ export default function ConfiguracionPage() {
                                         value={o.texto}
                                         onChange={(e) => actualizarOpcion(p.id, o.id, { texto: e.target.value })}
                                         placeholder="Texto de la opcion"
-                                        className="flex-1 py-2 text-sm"
+                                        className="min-w-0 flex-1 py-2 text-sm"
                                       />
                                       <TextInput
                                         type="number"
@@ -518,7 +518,7 @@ export default function ConfiguracionPage() {
                   <TextInput
                     value={t.etiqueta}
                     onChange={(e) => actualizarTipoDiscapacidad(t.id, { etiqueta: e.target.value })}
-                    className="flex-1"
+                    className="min-w-0 flex-1"
                   />
                   <button onClick={() => quitarTipoDiscapacidad(t.id)} className="text-sm font-medium text-danger underline underline-offset-2">
                     Eliminar
