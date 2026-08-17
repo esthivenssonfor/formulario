@@ -1,12 +1,20 @@
 "use client";
 
+import { useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { FUNDACION_LEMA, FUNDACION_WORDMARK_SRC } from "@/lib/config";
 
+const URL_WEB = "https://fundimopla.vercel.app";
+
 export default function Home() {
   const { esAdmin } = useAuth();
+  // Si esto ya se esta viendo DENTRO de la app instalada, no tiene sentido
+  // ofrecer descargar la app (una app dentro de otra app) -- se muestra un
+  // link a la version web en su lugar.
+  const [esAppNativa] = useState(() => Capacitor.isNativePlatform());
 
   return (
     <main
@@ -53,25 +61,42 @@ export default function Home() {
         )}
       </div>
 
-      <div className="rounded-xl border border-line bg-surface p-6">
-        <p className="font-semibold text-ink">Descargar aplicacion para el telefono</p>
-        <p className="mt-1 text-sm text-ink-muted">
-          Funciona igual que la web, pero guarda la encuesta en el celular cuando no
-          hay señal y la envia sola apenas haya conexion.
-        </p>
-        <a
-          href="/descargas/fundimopla.apk"
-          download
-          className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-        >
-          Descargar app (.apk)
-        </a>
-        <p className="mt-3 text-xs text-ink-muted">
-          Esta aplicacion es exclusiva para celulares con sistema operativo Android.
-          Al instalarla puede que el telefono pida permitir &quot;instalar apps de
-          origen desconocido&quot; -- es normal para apps que no vienen de Google Play.
-        </p>
-      </div>
+      {esAppNativa ? (
+        <div className="rounded-xl border border-line bg-surface p-6">
+          <p className="font-semibold text-ink">¿Preferis usar el navegador?</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Tambien podes usar el sistema desde la web, sin instalar nada.
+          </p>
+          <a
+            href={URL_WEB}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg border-2 border-brand px-5 py-3 font-semibold text-brand transition-colors duration-150 hover:bg-brand-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            Abrir en el navegador
+          </a>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-line bg-surface p-6">
+          <p className="font-semibold text-ink">Descargar aplicacion para el telefono</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Funciona igual que la web, pero guarda la encuesta en el celular cuando no
+            hay señal y la envia sola apenas haya conexion.
+          </p>
+          <a
+            href="/descargas/fundimopla.apk"
+            download
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            Descargar app (.apk)
+          </a>
+          <p className="mt-3 text-xs text-ink-muted">
+            Esta aplicacion es exclusiva para celulares con sistema operativo Android.
+            Al instalarla puede que el telefono pida permitir &quot;instalar apps de
+            origen desconocido&quot; -- es normal para apps que no vienen de Google Play.
+          </p>
+        </div>
+      )}
     </main>
   );
 }

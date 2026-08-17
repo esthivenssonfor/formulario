@@ -50,6 +50,9 @@ function Gate({ children }: { children: React.ReactNode }) {
       <Header
         acciones={
           <>
+            {profile && (
+              <span className="hidden text-sm text-ink-muted sm:inline">{profile.username}</span>
+            )}
             {esAdmin && (
               <Link href="/admin/usuarios">
                 <Button variant="secondary" className="px-3 py-1.5 text-sm">
@@ -62,7 +65,7 @@ function Gate({ children }: { children: React.ReactNode }) {
               onClick={() => signOut().then(() => router.push("/login"))}
               className="border border-danger/40 px-3 py-1.5 text-sm text-danger hover:bg-danger-soft"
             >
-              Cerrar sesion ({profile?.username ?? "..."})
+              Cerrar sesion
             </Button>
           </>
         }
