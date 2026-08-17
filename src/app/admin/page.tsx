@@ -39,15 +39,20 @@ export default function AdminPage() {
     return config?.preguntas.find((p) => p.id === id);
   }
 
+  // La discapacidad ya no se elige en un paso aparte: se toma de la
+  // respuesta real de la seccion II (texto libre).
+  function discapacidadDe(e: Encuesta): string {
+    return e.respuestas.find((r) => r.preguntaId === "q_discapacidad_detalle")?.valorTexto || "-";
+  }
+
   function exportarExcel() {
     if (!config) return;
     const filasExcel = filas.map((e) => ({
       Prioridad: prioridades.get(e.id),
+      Encuestador: e.encuestador,
       Participante: e.participante,
       Edad: e.edad ?? "",
-      Discapacidad:
-        config.tiposDiscapacidad.find((t) => t.id === e.discapacidad)?.etiqueta ??
-        e.discapacidad,
+      Discapacidad: discapacidadDe(e),
       Puntaje: e.puntajeTotal,
       Nivel: nivelDe(e)?.nombre ?? "",
       Fecha: new Date(e.fecha).toLocaleString("es"),
@@ -72,7 +77,13 @@ export default function AdminPage() {
 
   return (
     <main id="contenido" className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <Link href="/">
+        <Button variant="ghost" className="border border-line px-3 py-1.5 text-sm">
+          ← Atras
+        </Button>
+      </Link>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight text-ink">Panel administrativo</h1>
         <div className="flex flex-wrap gap-3">
           <Link

@@ -74,9 +74,13 @@ export interface RespuestaPregunta {
 
 export interface Encuesta {
   id: string;
+  // nombre de quien realiza la encuesta (staff/voluntario), no del encuestado.
+  encuestador: string;
   participante: string;
   edad: number | null;
-  discapacidad: string;
+  // ya no se elige en un paso aparte -- la seccion II de preguntas
+  // (q_discapacidad_detalle) ya cubre este dato como texto libre.
+  discapacidad: string | null;
   fecha: string; // ISO
   respuestas: RespuestaPregunta[];
   puntajeTotal: number;

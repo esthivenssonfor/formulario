@@ -45,6 +45,10 @@ function UsuariosContenido() {
   const [role, setRole] = useState<Rol>("user");
   const [creando, setCreando] = useState(false);
 
+  const [editandoEmailId, setEditandoEmailId] = useState<string | null>(null);
+  const [emailEditado, setEmailEditado] = useState("");
+  const [guardandoEmail, setGuardandoEmail] = useState(false);
+
   function cargar() {
     listarUsuarios()
       .then(setUsuarios)
@@ -117,6 +121,30 @@ function UsuariosContenido() {
     }
   }
 
+  function iniciarEdicionEmail(u: Profile) {
+    setEditandoEmailId(u.id);
+    setEmailEditado(u.email ?? "");
+  }
+
+  function cancelarEdicionEmail() {
+    setEditandoEmailId(null);
+    setEmailEditado("");
+  }
+
+  async function guardarEmail(id: string) {
+    setGuardandoEmail(true);
+    setMensaje(null);
+    try {
+      await actualizarUsuario(id, { email: emailEditado.trim() });
+      setEditandoEmailId(null);
+      cargar();
+    } catch (err) {
+      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "Error." });
+    } finally {
+      setGuardandoEmail(false);
+    }
+  }
+
   async function eliminar(u: Profile) {
     if (!confirm(`Eliminar a "${u.username}"? Esta accion no se puede deshacer.`)) return;
     setMensaje(null);
@@ -134,8 +162,10 @@ function UsuariosContenido() {
     <main id="contenido" className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-ink">Usuarios</h1>
-        <Link href="/admin" className="font-medium text-brand underline underline-offset-2">
-          Volver al panel
+        <Link href="/admin">
+          <Button variant="secondary" className="px-4 py-2 text-sm">
+            Volver al panel
+          </Button>
         </Link>
       </div>
       <p className="mt-2 text-ink-muted">
@@ -260,14 +290,49 @@ function UsuariosContenido() {
                       <td className="px-4 py-3 text-ink">{u.nombre ?? "-"}</td>
                       <td className="px-4 py-3 text-ink-muted">
                         {u.username} {esYoMismo && <span className="text-xs">(vos)</span>}
-                        {u.email && <div className="text-xs">{u.email}</div>}
+                        {editandoEmailId === u.id ? (
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <TextInput
+                              type="email"
+                              value={emailEditado}
+                              onChange={(e) => setEmailEditado(e.target.value)}
+                              placeholder="correo@ejemplo.com"
+                              autoFocus
+                              className="py-1 text-xs"
+                            />
+                            <button
+                              onClick={() => guardarEmail(u.id)}
+                              disabled={guardandoEmail}
+                              className="text-xs font-semibold text-success"
+                            >
+                              Guardar
+                            </button>
+                            <button onClick={cancelarEdicionEmail} className="text-xs font-medium text-ink-muted">
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mt-0.5 flex items-center gap-1.5 text-xs">
+                            {u.email ?? <span className="italic">sin correo</span>}
+                            <button
+                              onClick={() => iniciarEdicionEmail(u)}
+                              className="font-medium text-brand underline underline-offset-2"
+                            >
+                              Editar
+                            </button>
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <select
                           value={u.role}
                           disabled={esYoMismo}
                           onChange={(e) => cambiarRol(u, e.target.value as Rol)}
-                          className="rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-sm text-ink disabled:opacity-40"
+                          className={`rounded-lg border px-2 py-1.5 text-sm font-medium disabled:opacity-40 ${
+                            u.role === "admin"
+                              ? "border-brand bg-brand-soft text-brand"
+                              : "border-line-strong bg-surface-2 text-ink-muted"
+                          }`}
                         >
                           <option value="user">Usuario</option>
                           <option value="admin">Administrador</option>

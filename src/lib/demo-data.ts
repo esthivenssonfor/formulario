@@ -19,11 +19,16 @@ export const CONFIGURACION_DEMO: Configuracion = {
   preguntas: [
     // I. DATOS GENERALES DEL PACIENTE
     { id: "q_nombre", texto: "Nombre y apellido", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_apodo", texto: "Apodo o nombre por el que suele ser llamado/a", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
     { id: "q_fecha_nacimiento", texto: "Fecha de nacimiento", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "fecha", opciones: [] },
     { id: "q_edad", texto: "Edad (años)", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "numero", opciones: [] },
     { id: "q_cedula", texto: "Cédula de identidad", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_nacionalidad", texto: "Nacionalidad", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    {
+      id: "q_nacionalidad", texto: "Nacionalidad", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
+      opciones: [
+        { id: "q_nacionalidad_dominicana", texto: "Dominicana", puntos: 0 },
+        { id: "q_nacionalidad_otra", texto: "Otra", puntos: 0 },
+      ],
+    },
     {
       id: "q_estado_civil", texto: "Estado civil", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
       opciones: [

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FUNDIMOPLA</string>
+    <string name="title_activity_main">FUNDIMOPLA</string>
+    <string name="package_name">org.fundimopla.encuesta</string>
+    <string name="custom_url_scheme">org.fundimopla.encuesta</string>
+</resources>

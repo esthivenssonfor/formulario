@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 import { Alert, Button, TextInput } from "@/components/ui";
 import { Logo } from "@/components/logo";
@@ -12,10 +13,20 @@ const MENSAJES_ERROR: Record<string, string> = {
   "Email not confirmed": "Esta cuenta todavia no fue confirmada.",
 };
 
+const CLAVE_USUARIO_RECORDADO = "fundimopla_ultimo_usuario";
+
 export default function LoginPage() {
   const router = useRouter();
-  const [usuario, setUsuario] = useState("");
+  // el navegador ya ofrece recordar la CONTRASEÑA solo (autoComplete +
+  // name en los inputs, mas abajo); esto solo recuerda el nombre de
+  // usuario entre visitas para no tener que escribirlo cada vez.
+  const [usuario, setUsuario] = useState(() =>
+    typeof window === "undefined" ? "" : localStorage.getItem(CLAVE_USUARIO_RECORDADO) ?? ""
+  );
   const [password, setPassword] = useState("");
+  const [recordarUsuario, setRecordarUsuario] = useState(() =>
+    typeof window === "undefined" ? false : Boolean(localStorage.getItem(CLAVE_USUARIO_RECORDADO))
+  );
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +45,11 @@ export default function LoginPage() {
       setError(MENSAJES_ERROR[error.message] ?? error.message);
       return;
     }
+    if (recordarUsuario) {
+      localStorage.setItem(CLAVE_USUARIO_RECORDADO, usuario.trim());
+    } else {
+      localStorage.removeItem(CLAVE_USUARIO_RECORDADO);
+    }
     router.push("/admin");
     router.refresh();
   }
@@ -43,7 +59,13 @@ export default function LoginPage() {
       id="contenido"
       className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-12"
     >
-      <div className="flex flex-col items-center text-center">
+      <Link href="/" className="self-start">
+        <Button variant="ghost" className="border border-line px-3 py-1.5 text-sm">
+          ← Atras
+        </Button>
+      </Link>
+
+      <div className="mt-6 flex flex-col items-center text-center">
         <Logo size="lg" />
         <p className="mt-4 text-sm font-semibold text-brand">{FUNDACION_NOMBRE}</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
@@ -61,6 +83,7 @@ export default function LoginPage() {
           </span>
           <TextInput
             type="text"
+            name="username"
             required
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
@@ -77,6 +100,7 @@ export default function LoginPage() {
           <div className="relative">
             <TextInput
               type={mostrarPassword ? "text" : "password"}
+              name="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -92,6 +116,16 @@ export default function LoginPage() {
               {mostrarPassword ? "Ocultar" : "Mostrar"}
             </button>
           </div>
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-ink-muted">
+          <input
+            type="checkbox"
+            checked={recordarUsuario}
+            onChange={(e) => setRecordarUsuario(e.target.checked)}
+            className="h-4 w-4 accent-brand"
+          />
+          Recordar mi usuario en este dispositivo
         </label>
 
         {error && <Alert tono="error">{error}</Alert>}

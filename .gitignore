@@ -48,3 +48,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# App Android (Capacitor) -- se versiona el proyecto nativo, no los
+# artefactos de build (se regeneran con gradlew). local.properties tiene
+# la ruta del SDK de esta maquina especifica, no debe compartirse.
+/android/local.properties
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/captures/
+/android/.idea/
+*.keystore
+*.jks

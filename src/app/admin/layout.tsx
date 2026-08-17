@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Header } from "@/components/header";
+import { Button } from "@/components/ui";
 
 function AdminGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -32,12 +33,13 @@ function AdminGate({ children }: { children: React.ReactNode }) {
       <main id="contenido" className="mx-auto w-full max-w-md flex-1 px-6 py-16 text-center">
         <p className="text-lg font-semibold text-ink">Tu cuenta esta desactivada.</p>
         <p className="mt-2 text-ink-muted">Contacta al administrador del sistema.</p>
-        <button
+        <Button
+          variant="secondary"
           onClick={() => signOut().then(() => router.push("/admin/login"))}
-          className="mt-6 font-medium text-brand underline underline-offset-2"
+          className="mt-6"
         >
           Cerrar sesion
-        </button>
+        </Button>
       </main>
     );
   }
@@ -49,19 +51,19 @@ function AdminGate({ children }: { children: React.ReactNode }) {
         acciones={
           <>
             {esAdmin && (
-              <Link
-                href="/admin/usuarios"
-                className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-              >
-                Usuarios
+              <Link href="/admin/usuarios">
+                <Button variant="secondary" className="px-3 py-1.5 text-sm">
+                  Usuarios
+                </Button>
               </Link>
             )}
-            <button
+            <Button
+              variant="ghost"
               onClick={() => signOut().then(() => router.push("/admin/login"))}
-              className="text-sm font-medium text-ink-muted underline underline-offset-2 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+              className="border border-danger/40 px-3 py-1.5 text-sm text-danger hover:bg-danger-soft"
             >
               Cerrar sesion ({profile?.username ?? "..."})
-            </button>
+            </Button>
           </>
         }
       />

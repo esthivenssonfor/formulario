@@ -48,6 +48,26 @@ export default function Home() {
             Panel administrativo
           </Link>
         </div>
+
+        <div className="rounded-xl border border-line bg-surface p-6">
+          <p className="font-semibold text-ink">Descargar aplicacion para el telefono</p>
+          <p className="mt-1 text-sm text-ink-muted">
+            Funciona igual que la web, pero guarda la encuesta en el celular cuando no
+            hay señal y la envia sola apenas haya conexion.
+          </p>
+          <a
+            href="/descargas/fundimopla.apk"
+            download
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            Descargar app (.apk)
+          </a>
+          <p className="mt-3 text-xs text-ink-muted">
+            Esta aplicacion es exclusiva para celulares con sistema operativo Android.
+            Al instalarla puede que el telefono pida permitir &quot;instalar apps de
+            origen desconocido&quot; -- es normal para apps que no vienen de Google Play.
+          </p>
+        </div>
       </main>
     </>
   );

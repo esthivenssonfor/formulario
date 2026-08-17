@@ -143,6 +143,7 @@ export async function listarEncuestas(): Promise<Encuesta[]> {
 
   return (encuestasData ?? []).map((e) => ({
     id: e.id,
+    encuestador: e.encuestador ?? "",
     participante: e.participante,
     edad: e.edad,
     discapacidad: e.discapacidad,
@@ -166,6 +167,7 @@ export async function listarEncuestas(): Promise<Encuesta[]> {
 export async function guardarEncuesta(encuesta: Encuesta): Promise<void> {
   const { error: encuestaError } = await supabase.from("encuestas").insert({
     id: encuesta.id,
+    encuestador: encuesta.encuestador,
     participante: encuesta.participante,
     edad: encuesta.edad,
     discapacidad: encuesta.discapacidad,

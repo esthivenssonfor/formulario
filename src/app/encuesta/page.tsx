@@ -4,7 +4,8 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Configuracion, Encuesta, RespuestaPregunta } from "@/lib/types";
-import { obtenerConfiguracion, guardarEncuesta } from "@/lib/storage";
+import { obtenerConfiguracion } from "@/lib/storage";
+import { guardarEncuestaConCola, iniciarSincronizacionAutomatica } from "@/lib/offline-queue";
 import {
   calcularNivel,
   calcularPuntajeTotal,
@@ -14,17 +15,28 @@ import {
 import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
 import { Header } from "@/components/header";
 
-type Paso = "datos" | "discapacidad" | "preguntas" | "resultado";
+// Un "unica" con muchas opciones se muestra como <select> (menu) en vez de
+// radios largos -- mejor UX para listas como nacionalidad.
+const UMBRAL_MENU_DESPLEGABLE = 5;
+
+// Cuando la opcion elegida es literalmente "Otra", se pide especificar en
+// texto libre (aplica a cualquier pregunta unica/multiple, no solo
+// nacionalidad).
+function esOtraSeleccionada(pregunta: { opciones: { id: string; texto: string }[] }, ids: string[]): boolean {
+  return pregunta.opciones.some((o) => ids.includes(o.id) && o.texto.trim().toLowerCase() === "otra");
+}
+
+type Paso = "datos" | "encuestado" | "preguntas" | "resultado";
 
 const PASOS: { id: Paso; etiqueta: string }[] = [
-  { id: "datos", etiqueta: "Datos" },
-  { id: "discapacidad", etiqueta: "Discapacidad" },
+  { id: "datos", etiqueta: "Encuestador" },
+  { id: "encuestado", etiqueta: "Encuestado" },
   { id: "preguntas", etiqueta: "Preguntas" },
   { id: "resultado", etiqueta: "Resultado" },
 ];
 
 function esPaso(v: string | null): v is Paso {
-  return v === "datos" || v === "discapacidad" || v === "preguntas" || v === "resultado";
+  return v === "datos" || v === "encuestado" || v === "preguntas" || v === "resultado";
 }
 
 function PasoIndicador({ paso }: { paso: Paso }) {
@@ -75,23 +87,42 @@ function EncuestaContenido() {
   }
 
   const [config, setConfig] = useState<Configuracion | null>(null);
-  useEffect(() => {
-    obtenerConfiguracion().then(setConfig);
-  }, []);
-
-  const [participante, setParticipante] = useState("");
+  const [encuestador, setEncuestador] = useState("");
+  const [nombreEncuestado, setNombreEncuestado] = useState("");
+  const [apellidoEncuestado, setApellidoEncuestado] = useState("");
   const [edad, setEdad] = useState("");
-  const [discapacidad, setDiscapacidad] = useState<string>("");
   const [seleccion, setSeleccion] = useState<Record<string, string[]>>({});
+  // texto libre cuando la opcion elegida es "Otra" (cualquier pregunta de
+  // seleccion unica/multiple, no solo nacionalidad).
+  const [especificar, setEspecificar] = useState<Record<string, string>>({});
   const [valores, setValores] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [resultado, setResultado] = useState<Encuesta | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [sincronizada, setSincronizada] = useState(true);
 
-  const preguntas = useMemo(
-    () => (config && discapacidad ? preguntasVisibles(config.preguntas, discapacidad) : []),
-    [config, discapacidad]
-  );
+  // reintenta enviar encuestas guardadas offline en cuanto vuelve la señal.
+  useEffect(() => iniciarSincronizacionAutomatica(), []);
+
+  useEffect(() => {
+    obtenerConfiguracion().then((c) => {
+      setConfig(c);
+      // "Dominicana" preseleccionada en nacionalidad -- se puede cambiar.
+      const nacionalidad = c.preguntas.find((p) => p.id === "q_nacionalidad");
+      const dominicana = nacionalidad?.opciones.find((o) => o.texto === "Dominicana");
+      if (nacionalidad && dominicana) {
+        setSeleccion((prev) =>
+          prev[nacionalidad.id] ? prev : { ...prev, [nacionalidad.id]: [dominicana.id] }
+        );
+      }
+    });
+  }, []);
+
+  // La discapacidad ya no se elige en un paso aparte: la seccion II de
+  // preguntas (q_discapacidad_detalle) la cubre como texto libre. Se
+  // muestran todas las preguntas (ninguna real usa el filtro por
+  // discapacidad hoy).
+  const preguntas = useMemo(() => (config ? preguntasVisibles(config.preguntas, "") : []), [config]);
 
   const preguntasDeSeleccion = useMemo(
     () => preguntas.filter((p) => p.tipo === "unica" || p.tipo === "multiple"),
@@ -114,17 +145,17 @@ function EncuestaContenido() {
   }
 
   function enviarPaso1() {
-    if (!participante.trim()) {
-      setError("Ingresa un nombre o codigo de participante.");
+    if (!encuestador.trim()) {
+      setError("Ingresa el nombre de quien realiza la encuesta.");
       return;
     }
     setError(null);
-    irAPaso("discapacidad");
+    irAPaso("encuestado");
   }
 
   function enviarPaso2() {
-    if (!discapacidad) {
-      setError("Selecciona una opcion.");
+    if (!nombreEncuestado.trim()) {
+      setError("Ingresa el nombre del encuestado.");
       return;
     }
     setError(null);
@@ -148,6 +179,7 @@ function EncuestaContenido() {
         ? {
             preguntaId: p.id,
             opcionIds: seleccion[p.id],
+            valorTexto: esOtraSeleccionada(p, seleccion[p.id]) ? especificar[p.id] ?? "" : undefined,
             puntos: calcularPuntosRespuesta(p, seleccion[p.id]),
           }
         : {
@@ -163,9 +195,10 @@ function EncuestaContenido() {
 
     const encuesta: Encuesta = {
       id: crypto.randomUUID(),
-      participante: participante.trim(),
+      encuestador: encuestador.trim(),
+      participante: [nombreEncuestado.trim(), apellidoEncuestado.trim()].filter(Boolean).join(" "),
       edad: edad ? Number(edad) : null,
-      discapacidad,
+      discapacidad: null,
       fecha: new Date().toISOString(),
       respuestas,
       puntajeTotal,
@@ -173,7 +206,8 @@ function EncuestaContenido() {
       prioridad: null, // se calcula al momento de listar/rankear en el admin
     };
 
-    await guardarEncuesta(encuesta);
+    const { sincronizada: yaEnviada } = await guardarEncuestaConCola(encuesta);
+    setSincronizada(yaEnviada);
     setEnviando(false);
     setResultado(encuesta);
     irAPaso("resultado");
@@ -202,14 +236,47 @@ function EncuestaContenido() {
       {paso === "datos" && (
         <section aria-labelledby="titulo-paso">
           <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
-            Datos iniciales
+            ¿Quien realiza esta encuesta?
           </h1>
           <div className="mt-6 flex flex-col gap-4">
             <label className="flex flex-col gap-1.5">
-              <span className="font-medium text-ink">Nombre o codigo de participante</span>
+              <span className="font-medium text-ink">Nombre del encuestador</span>
               <TextInput
-                value={participante}
-                onChange={(e) => setParticipante(e.target.value)}
+                value={encuestador}
+                onChange={(e) => setEncuestador(e.target.value)}
+                autoFocus
+              />
+            </label>
+          </div>
+          {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
+          <div className="mt-6 flex gap-3">
+            <Link href="/">
+              <Button variant="secondary">Atras</Button>
+            </Link>
+            <Button onClick={enviarPaso1}>Continuar</Button>
+          </div>
+        </section>
+      )}
+
+      {paso === "encuestado" && (
+        <section aria-labelledby="titulo-paso">
+          <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
+            Datos del encuestado
+          </h1>
+          <div className="mt-6 flex flex-col gap-4">
+            <label className="flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Nombre</span>
+              <TextInput
+                value={nombreEncuestado}
+                onChange={(e) => setNombreEncuestado(e.target.value)}
+                autoFocus
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Apellido</span>
+              <TextInput
+                value={apellidoEncuestado}
+                onChange={(e) => setApellidoEncuestado(e.target.value)}
               />
             </label>
             <label className="flex flex-col gap-1.5">
@@ -222,37 +289,6 @@ function EncuestaContenido() {
               />
             </label>
           </div>
-          {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
-          <Button onClick={enviarPaso1} className="mt-6">
-            Continuar
-          </Button>
-        </section>
-      )}
-
-      {paso === "discapacidad" && (
-        <section aria-labelledby="titulo-paso">
-          <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
-            Tipo de discapacidad
-          </h1>
-          <fieldset className="mt-6 flex flex-col gap-3">
-            <legend className="sr-only">Selecciona el tipo de discapacidad</legend>
-            {config.tiposDiscapacidad.map((t) => (
-              <label
-                key={t.id}
-                className="flex items-center gap-3 rounded-lg border border-line-strong bg-surface px-4 py-3 text-lg transition-colors duration-150 has-[:checked]:border-brand has-[:checked]:bg-brand-soft"
-              >
-                <input
-                  type="radio"
-                  name="discapacidad"
-                  value={t.id}
-                  checked={discapacidad === t.id}
-                  onChange={() => setDiscapacidad(t.id)}
-                  className="h-5 w-5 accent-brand"
-                />
-                {t.etiqueta}
-              </label>
-            ))}
-          </fieldset>
           {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
           <div className="mt-6 flex gap-3">
             <Button variant="secondary" onClick={() => router.back()}>
@@ -287,6 +323,7 @@ function EncuestaContenido() {
           <div className="mt-6 flex flex-col gap-10">
             {preguntas.map((p, idx) => {
               const nuevaSeccion = p.seccion !== preguntas[idx - 1]?.seccion;
+              const comoMenu = p.tipo === "unica" && p.opciones.length >= UMBRAL_MENU_DESPLEGABLE;
               return (
                 <div key={p.id}>
                   {nuevaSeccion && (
@@ -298,7 +335,23 @@ function EncuestaContenido() {
                     <legend className="text-lg font-semibold text-ink text-pretty">
                       {p.texto}
                     </legend>
-                    {(p.tipo === "unica" || p.tipo === "multiple") && (
+                    {comoMenu && (
+                      <select
+                        value={seleccion[p.id]?.[0] ?? ""}
+                        onChange={(e) => elegirOpcion(p.id, e.target.value, true)}
+                        className="mt-3 w-full rounded-lg border border-line-strong bg-surface px-4 py-3 text-base text-ink focus-visible:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
+                      >
+                        <option value="" disabled>
+                          Selecciona una opcion
+                        </option>
+                        {p.opciones.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.texto}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {!comoMenu && (p.tipo === "unica" || p.tipo === "multiple") && (
                       <div className="mt-3 flex flex-col gap-2">
                         {p.opciones.map((o) => (
                           <label
@@ -327,6 +380,17 @@ function EncuestaContenido() {
                         className="mt-3 w-full"
                       />
                     )}
+                    {(p.tipo === "unica" || p.tipo === "multiple") &&
+                      esOtraSeleccionada(p, seleccion[p.id] ?? []) && (
+                        <TextInput
+                          value={especificar[p.id] ?? ""}
+                          onChange={(e) =>
+                            setEspecificar((prev) => ({ ...prev, [p.id]: e.target.value }))
+                          }
+                          placeholder="Especifica cual"
+                          className="mt-2 w-full"
+                        />
+                      )}
                   </fieldset>
                 </div>
               );
@@ -356,6 +420,16 @@ function EncuestaContenido() {
               <div className="mt-3">
                 <NivelBadge tono={nivel.id}>Nivel: {nivel.nombre}</NivelBadge>
               </div>
+            )}
+          </div>
+          <div className="mt-4">
+            {sincronizada ? (
+              <Alert tono="ok">Encuesta enviada correctamente.</Alert>
+            ) : (
+              <Alert tono="info">
+                Sin conexion por ahora -- la encuesta quedo guardada en este dispositivo y se
+                enviara sola apenas haya señal. No hace falta volver a llenarla.
+              </Alert>
             )}
           </div>
           <Link
