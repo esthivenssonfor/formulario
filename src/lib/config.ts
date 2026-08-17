@@ -22,6 +22,12 @@ export const FUNDACION_WORDMARK_SRC: string | null = "/fundimopla-wordmark.jpeg"
 // real antes de autenticar.
 export const DOMINIO_INTERNO_AUTH = "fundimopla.local";
 
+// URL publica del deploy en Vercel. La app Android va empaquetada (sin
+// depender de internet para abrir), pero las llamadas a /api/* (gestion de
+// usuarios) necesitan un servidor real -- ahi se usa esta URL absoluta en
+// vez de una ruta relativa. Tambien se usa para "Abrir en el navegador".
+export const URL_WEB = "https://fundimopla.vercel.app";
+
 const USERNAME_REGEX = /^[a-z0-9](?:[a-z0-9_.]{1,30}[a-z0-9])?$/;
 
 export function normalizarUsername(valor: string): string {

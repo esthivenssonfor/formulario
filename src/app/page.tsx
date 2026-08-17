@@ -6,9 +6,7 @@ import { Browser } from "@capacitor/browser";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { FUNDACION_LEMA, FUNDACION_WORDMARK_SRC } from "@/lib/config";
-
-const URL_WEB = "https://fundimopla.vercel.app";
+import { FUNDACION_LEMA, FUNDACION_WORDMARK_SRC, URL_WEB } from "@/lib/config";
 
 export default function Home() {
   const { esAdmin } = useAuth();

@@ -7,7 +7,31 @@ import type { Configuracion, Encuesta, Pregunta, RespuestaPregunta } from "./typ
 // publica (RLS permite select anonimo); guardarConfiguracion() y la lectura
 // de encuestas/respuestas requieren sesion de Supabase Auth (panel admin).
 
+const CLAVE_CACHE_CONFIG = "fundimopla_config_cache";
+
+/**
+ * Trae la configuracion de Supabase y la deja en cache local. Si no hay
+ * señal, sirve la ultima version cacheada -- asi la encuesta se puede
+ * seguir llenando sin internet (ver tambien offline-queue.ts para el
+ * envio de las respuestas).
+ */
 export async function obtenerConfiguracion(): Promise<Configuracion> {
+  try {
+    const config = await obtenerConfiguracionDeSupabase();
+    if (typeof window !== "undefined") {
+      localStorage.setItem(CLAVE_CACHE_CONFIG, JSON.stringify(config));
+    }
+    return config;
+  } catch (err) {
+    if (typeof window !== "undefined") {
+      const cache = localStorage.getItem(CLAVE_CACHE_CONFIG);
+      if (cache) return JSON.parse(cache) as Configuracion;
+    }
+    throw err;
+  }
+}
+
+async function obtenerConfiguracionDeSupabase(): Promise<Configuracion> {
   const [tiposRes, preguntasRes, opcionesRes, rangosRes, puntuacionRes, reglasRes] = await Promise.all([
     supabase.from("tipos_discapacidad").select("*"),
     supabase.from("preguntas").select("*").order("orden"),

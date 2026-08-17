@@ -1,5 +1,14 @@
+import { Capacitor } from "@capacitor/core";
 import { supabase } from "./supabase-client";
+import { URL_WEB } from "./config";
 import type { Profile, Rol } from "./types";
+
+// La app Android va empaquetada (sin servidor local): las rutas /api/*
+// solo existen en el deploy real, asi que ahi se llaman con URL absoluta.
+// En la web (o en `next dev`) la ruta relativa ya apunta al mismo origen.
+function apiUrl(path: string): string {
+  return Capacitor.isNativePlatform() ? `${URL_WEB}${path}` : path;
+}
 
 async function authHeaders(): Promise<HeadersInit> {
   const { data } = await supabase.auth.getSession();
@@ -17,7 +26,7 @@ async function manejarRespuesta<T>(res: Response): Promise<T> {
 }
 
 export async function listarUsuarios(): Promise<Profile[]> {
-  const res = await fetch("/api/admin/users", { headers: await authHeaders() });
+  const res = await fetch(apiUrl("/api/admin/users"), { headers: await authHeaders() });
   const body = await manejarRespuesta<{ usuarios: Profile[] }>(res);
   return body.usuarios;
 }
@@ -29,7 +38,7 @@ export async function crearUsuario(datos: {
   nombre: string;
   role: Rol;
 }): Promise<Profile> {
-  const res = await fetch("/api/admin/users", {
+  const res = await fetch(apiUrl("/api/admin/users"), {
     method: "POST",
     headers: await authHeaders(),
     body: JSON.stringify(datos),
@@ -42,7 +51,7 @@ export async function actualizarUsuario(
   id: string,
   cambios: Partial<{ nombre: string; email: string; role: Rol; activo: boolean; password: string }>
 ): Promise<Profile> {
-  const res = await fetch(`/api/admin/users/${id}`, {
+  const res = await fetch(apiUrl(`/api/admin/users/${id}`), {
     method: "PATCH",
     headers: await authHeaders(),
     body: JSON.stringify(cambios),
@@ -52,7 +61,7 @@ export async function actualizarUsuario(
 }
 
 export async function eliminarUsuario(id: string): Promise<void> {
-  const res = await fetch(`/api/admin/users/${id}`, {
+  const res = await fetch(apiUrl(`/api/admin/users/${id}`), {
     method: "DELETE",
     headers: await authHeaders(),
   });
