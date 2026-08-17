@@ -173,6 +173,7 @@ export default function AdminPage() {
             <thead>
               <tr className="border-b border-line bg-surface text-sm text-ink-muted">
                 <th className="px-4 py-3 font-semibold">Prioridad</th>
+                <th className="px-4 py-3 font-semibold">Encuestador</th>
                 <th className="px-4 py-3 font-semibold">Encuestado</th>
                 <th className="px-4 py-3 font-semibold">Discapacidad</th>
                 <th className="px-4 py-3 font-semibold">Puntaje</th>
@@ -188,6 +189,7 @@ export default function AdminPage() {
                   <Fragment key={e.id}>
                     <tr className="border-b border-line last:border-0 hover:bg-surface">
                       <td className="px-4 py-3 font-semibold text-ink">{prioridades.get(e.id)}</td>
+                      <td className="px-4 py-3 text-ink-muted">{e.encuestador || "-"}</td>
                       <td className="px-4 py-3 text-ink">{e.participante}</td>
                       <td className="px-4 py-3 text-ink-muted">{discapacidadDe(e)}</td>
                       <td className="px-4 py-3 text-ink">{e.puntajeTotal}</td>
@@ -211,7 +213,7 @@ export default function AdminPage() {
                     </tr>
                     {expandido && (
                       <tr className="border-b border-line bg-surface">
-                        <td colSpan={6} className="px-4 py-4">
+                        <td colSpan={7} className="px-4 py-4">
                           <ul className="flex flex-col gap-2 text-sm">
                             {e.respuestas.map((r) => {
                               const pregunta = preguntaDe(r.preguntaId);
