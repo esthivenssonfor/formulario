@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Configuracion, Encuesta, RespuestaPregunta } from "@/lib/types";
-import { obtenerConfiguracion } from "@/lib/storage";
+import { obtenerConfiguracion, listarEncuestadores } from "@/lib/storage";
 import { guardarEncuestaConCola, iniciarSincronizacionAutomatica } from "@/lib/offline-queue";
 import {
   calcularNivel,
@@ -26,17 +26,22 @@ function esOtraSeleccionada(pregunta: { opciones: { id: string; texto: string }[
   return pregunta.opciones.some((o) => ids.includes(o.id) && o.texto.trim().toLowerCase() === "otra");
 }
 
-type Paso = "datos" | "encuestado" | "preguntas" | "resultado";
+// El nombre y la edad del encuestado ya se piden dentro de la encuesta
+// misma (seccion I). Se extraen de ahi para guardarlos en encuestas.participante/edad.
+function valorDe(respuestas: RespuestaPregunta[], preguntaId: string): string {
+  return respuestas.find((r) => r.preguntaId === preguntaId)?.valorTexto?.trim() || "";
+}
+
+type Paso = "datos" | "preguntas" | "resultado";
 
 const PASOS: { id: Paso; etiqueta: string }[] = [
   { id: "datos", etiqueta: "Encuestador" },
-  { id: "encuestado", etiqueta: "Encuestado" },
   { id: "preguntas", etiqueta: "Preguntas" },
   { id: "resultado", etiqueta: "Resultado" },
 ];
 
 function esPaso(v: string | null): v is Paso {
-  return v === "datos" || v === "encuestado" || v === "preguntas" || v === "resultado";
+  return v === "datos" || v === "preguntas" || v === "resultado";
 }
 
 function PasoIndicador({ paso }: { paso: Paso }) {
@@ -87,10 +92,9 @@ function EncuestaContenido() {
   }
 
   const [config, setConfig] = useState<Configuracion | null>(null);
+  const [encuestadores, setEncuestadores] = useState<{ id: string; nombre: string }[]>([]);
   const [encuestador, setEncuestador] = useState("");
-  const [nombreEncuestado, setNombreEncuestado] = useState("");
-  const [apellidoEncuestado, setApellidoEncuestado] = useState("");
-  const [edad, setEdad] = useState("");
+  const [encuestadorOtro, setEncuestadorOtro] = useState("");
   const [seleccion, setSeleccion] = useState<Record<string, string[]>>({});
   // texto libre cuando la opcion elegida es "Otra" (cualquier pregunta de
   // seleccion unica/multiple, no solo nacionalidad).
@@ -105,6 +109,7 @@ function EncuestaContenido() {
   useEffect(() => iniciarSincronizacionAutomatica(), []);
 
   useEffect(() => {
+    listarEncuestadores().then(setEncuestadores).catch(() => setEncuestadores([]));
     obtenerConfiguracion().then((c) => {
       setConfig(c);
       // "Dominicana" preseleccionada en nacionalidad -- se puede cambiar.
@@ -145,17 +150,9 @@ function EncuestaContenido() {
   }
 
   function enviarPaso1() {
-    if (!encuestador.trim()) {
-      setError("Ingresa el nombre de quien realiza la encuesta.");
-      return;
-    }
-    setError(null);
-    irAPaso("encuestado");
-  }
-
-  function enviarPaso2() {
-    if (!nombreEncuestado.trim()) {
-      setError("Ingresa el nombre del encuestado.");
+    const nombreFinal = encuestador === "__otro__" ? encuestadorOtro.trim() : encuestador;
+    if (!nombreFinal) {
+      setError("Selecciona (o escribe) quien realiza la encuesta.");
       return;
     }
     setError(null);
@@ -192,12 +189,13 @@ function EncuestaContenido() {
 
     const puntajeTotal = calcularPuntajeTotal(respuestas);
     const nivelId = calcularNivel(puntajeTotal, config);
+    const edadTexto = valorDe(respuestas, "q_edad");
 
     const encuesta: Encuesta = {
       id: crypto.randomUUID(),
-      encuestador: encuestador.trim(),
-      participante: [nombreEncuestado.trim(), apellidoEncuestado.trim()].filter(Boolean).join(" "),
-      edad: edad ? Number(edad) : null,
+      encuestador: encuestador === "__otro__" ? encuestadorOtro.trim() : encuestador,
+      participante: valorDe(respuestas, "q_nombre") || "(sin nombre)",
+      edad: edadTexto ? Number(edadTexto) : null,
       discapacidad: null,
       fecha: new Date().toISOString(),
       respuestas,
@@ -240,13 +238,34 @@ function EncuestaContenido() {
           </h1>
           <div className="mt-6 flex flex-col gap-4">
             <label className="flex flex-col gap-1.5">
-              <span className="font-medium text-ink">Nombre del encuestador</span>
-              <TextInput
+              <span className="font-medium text-ink">Encuestador</span>
+              <select
                 value={encuestador}
                 onChange={(e) => setEncuestador(e.target.value)}
                 autoFocus
-              />
+                className="rounded-lg border border-line-strong bg-surface px-4 py-3 text-base text-ink focus-visible:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
+              >
+                <option value="" disabled>
+                  Selecciona tu nombre
+                </option>
+                {encuestadores.map((u) => (
+                  <option key={u.id} value={u.nombre}>
+                    {u.nombre}
+                  </option>
+                ))}
+                <option value="__otro__">Otro (no esta en la lista)</option>
+              </select>
             </label>
+            {encuestador === "__otro__" && (
+              <label className="flex flex-col gap-1.5">
+                <span className="font-medium text-ink">Nombre</span>
+                <TextInput
+                  value={encuestadorOtro}
+                  onChange={(e) => setEncuestadorOtro(e.target.value)}
+                  autoFocus
+                />
+              </label>
+            )}
           </div>
           {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
           <div className="mt-6 flex gap-3">
@@ -254,47 +273,6 @@ function EncuestaContenido() {
               <Button variant="secondary">Atras</Button>
             </Link>
             <Button onClick={enviarPaso1}>Continuar</Button>
-          </div>
-        </section>
-      )}
-
-      {paso === "encuestado" && (
-        <section aria-labelledby="titulo-paso">
-          <h1 id="titulo-paso" className="text-2xl font-bold tracking-tight text-ink">
-            Datos del encuestado
-          </h1>
-          <div className="mt-6 flex flex-col gap-4">
-            <label className="flex flex-col gap-1.5">
-              <span className="font-medium text-ink">Nombre</span>
-              <TextInput
-                value={nombreEncuestado}
-                onChange={(e) => setNombreEncuestado(e.target.value)}
-                autoFocus
-              />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="font-medium text-ink">Apellido</span>
-              <TextInput
-                value={apellidoEncuestado}
-                onChange={(e) => setApellidoEncuestado(e.target.value)}
-              />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="font-medium text-ink">Edad (opcional)</span>
-              <TextInput
-                type="number"
-                min={0}
-                value={edad}
-                onChange={(e) => setEdad(e.target.value)}
-              />
-            </label>
-          </div>
-          {error && <div className="mt-4"><Alert tono="error">{error}</Alert></div>}
-          <div className="mt-6 flex gap-3">
-            <Button variant="secondary" onClick={() => router.back()}>
-              Atras
-            </Button>
-            <Button onClick={enviarPaso2}>Continuar</Button>
           </div>
         </section>
       )}
