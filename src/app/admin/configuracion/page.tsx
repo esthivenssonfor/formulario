@@ -148,7 +148,6 @@ export default function ConfiguracionPage() {
       const nueva: Pregunta = {
         id: nuevoId("preg"),
         texto: "",
-        categoria: "",
         seccion,
         peso: 1,
         tipo: "unica",
@@ -175,7 +174,6 @@ export default function ConfiguracionPage() {
       const nueva: Pregunta = {
         id: nuevoId("preg"),
         texto: "",
-        categoria: "",
         seccion: nombre.trim(),
         peso: 1,
         tipo: "unica",
@@ -464,6 +462,7 @@ export default function ConfiguracionPage() {
                                 <TextArea
                                   value={p.texto}
                                   onChange={(e) => actualizarPregunta(p.id, { texto: e.target.value })}
+                                  placeholder="Escribi la pregunta tal como la va a leer el encuestador"
                                   className="mt-1 w-full text-sm"
                                   rows={2}
                                 />
@@ -476,9 +475,9 @@ export default function ConfiguracionPage() {
                               </button>
                             </div>
 
-                            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            <div className="mt-3 grid grid-cols-2 gap-3">
                               <label>
-                                <span className="text-xs font-medium text-ink-muted">Tipo</span>
+                                <span className="text-xs font-medium text-ink-muted">Tipo de respuesta</span>
                                 <select
                                   value={p.tipo}
                                   onChange={(e) => actualizarPregunta(p.id, { tipo: e.target.value as TipoPregunta })}
@@ -492,20 +491,17 @@ export default function ConfiguracionPage() {
                                 </select>
                               </label>
                               <label>
-                                <span className="text-xs font-medium text-ink-muted">Peso</span>
+                                <span
+                                  className="text-xs font-medium text-ink-muted"
+                                  title="Multiplica los puntos de la opcion elegida. Dejalo en 1 para no cambiar nada; en 0 la pregunta no suma puntaje."
+                                >
+                                  Multiplicador de puntos
+                                </span>
                                 <TextInput
                                   type="number"
                                   step="0.1"
                                   value={p.peso}
                                   onChange={(e) => actualizarPregunta(p.id, { peso: Number(e.target.value) })}
-                                  className="mt-1 w-full py-2 text-sm"
-                                />
-                              </label>
-                              <label className="col-span-2">
-                                <span className="text-xs font-medium text-ink-muted">Categoria (opcional)</span>
-                                <TextInput
-                                  value={p.categoria}
-                                  onChange={(e) => actualizarPregunta(p.id, { categoria: e.target.value })}
                                   className="mt-1 w-full py-2 text-sm"
                                 />
                               </label>
@@ -554,11 +550,18 @@ export default function ConfiguracionPage() {
                               </div>
                             )}
 
-                            <div className="mt-3">
-                              <span className="text-xs font-medium text-ink-muted">
-                                Mostrar solo si la discapacidad es (vacio = siempre visible)
-                              </span>
-                              <div className="mt-1 flex flex-wrap gap-3">
+                            <details
+                              className="mt-3 rounded-lg border border-line px-3 py-2"
+                              open={(p.mostrarSiDiscapacidad ?? []).length > 0}
+                            >
+                              <summary className="cursor-pointer select-none text-xs font-medium text-ink-muted">
+                                {(p.mostrarSiDiscapacidad ?? []).length > 0
+                                  ? `Visible solo para: ${p.mostrarSiDiscapacidad!
+                                      .map((id) => config.tiposDiscapacidad.find((t) => t.id === id)?.etiqueta || id)
+                                      .join(", ")}`
+                                  : "Visible para todas las discapacidades (tocá para limitarla)"}
+                              </summary>
+                              <div className="mt-2 flex flex-wrap gap-3">
                                 {config.tiposDiscapacidad.map((t) => (
                                   <label key={t.id} className="flex items-center gap-1.5 text-sm text-ink">
                                     <input
@@ -571,7 +574,10 @@ export default function ConfiguracionPage() {
                                   </label>
                                 ))}
                               </div>
-                            </div>
+                              <p className="mt-2 text-xs text-ink-muted">
+                                Sin ninguna marcada, la pregunta se muestra a todos los encuestados.
+                              </p>
+                            </details>
                           </div>
                         ))}
                         <button

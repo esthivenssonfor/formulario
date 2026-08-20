@@ -47,7 +47,6 @@ async function obtenerConfiguracionDeSupabase(): Promise<Configuracion> {
   const preguntas: Pregunta[] = (preguntasRes.data ?? []).map((p) => ({
     id: p.id,
     texto: p.texto,
-    categoria: p.categoria,
     seccion: p.seccion,
     peso: Number(p.peso),
     tipo: p.tipo,
@@ -104,7 +103,6 @@ export async function guardarConfiguracion(config: Configuracion): Promise<void>
       config.preguntas.map((p, idx) => ({
         id: p.id,
         texto: p.texto,
-        categoria: p.categoria,
         seccion: p.seccion,
         peso: p.peso,
         tipo: p.tipo,

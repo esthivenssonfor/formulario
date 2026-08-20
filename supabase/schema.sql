@@ -9,7 +9,6 @@ create table tipos_discapacidad (
 create table preguntas (
   id text primary key,
   texto text not null,
-  categoria text not null,
   seccion text not null,
   peso numeric not null default 1,
   tipo text not null check (tipo in ('unica', 'multiple', 'texto', 'fecha', 'numero')),

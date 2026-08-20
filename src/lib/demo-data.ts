@@ -18,19 +18,19 @@ export const CONFIGURACION_DEMO: Configuracion = {
   ],
   preguntas: [
     // I. DATOS GENERALES DEL PACIENTE
-    { id: "q_nombre", texto: "Nombre y apellido", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_fecha_nacimiento", texto: "Fecha de nacimiento", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "fecha", opciones: [] },
-    { id: "q_edad", texto: "Edad (años)", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "numero", opciones: [] },
-    { id: "q_cedula", texto: "Cédula de identidad", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_nombre", texto: "Nombre y apellido", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_fecha_nacimiento", texto: "Fecha de nacimiento", seccion: "I. Datos generales del paciente", peso: 0, tipo: "fecha", opciones: [] },
+    { id: "q_edad", texto: "Edad (años)", seccion: "I. Datos generales del paciente", peso: 0, tipo: "numero", opciones: [] },
+    { id: "q_cedula", texto: "Cédula de identidad", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_nacionalidad", texto: "Nacionalidad", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
+      id: "q_nacionalidad", texto: "Nacionalidad", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
       opciones: [
         { id: "q_nacionalidad_dominicana", texto: "Dominicana", puntos: 0 },
         { id: "q_nacionalidad_otra", texto: "Otra", puntos: 0 },
       ],
     },
     {
-      id: "q_estado_civil", texto: "Estado civil", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
+      id: "q_estado_civil", texto: "Estado civil", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
       opciones: [
         { id: "ec_soltero", texto: "Soltero/a", puntos: 0 },
         { id: "ec_casado", texto: "Casado/a", puntos: 0 },
@@ -41,7 +41,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_nivel_academico", texto: "Nivel académico alcanzado", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
+      id: "q_nivel_academico", texto: "Nivel académico alcanzado", seccion: "I. Datos generales del paciente", peso: 0, tipo: "unica",
       opciones: [
         { id: "na_ninguno", texto: "Ninguno", puntos: 0 },
         { id: "na_primaria", texto: "Primaria", puntos: 0 },
@@ -51,11 +51,11 @@ export const CONFIGURACION_DEMO: Configuracion = {
         { id: "na_otro", texto: "Otro", puntos: 0 },
       ],
     },
-    { id: "q_ocupacion", texto: "Ocupación actual", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_telefono", texto: "Número de teléfono", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_direccion", texto: "Dirección completa", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_ocupacion", texto: "Ocupación actual", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_telefono", texto: "Número de teléfono", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_direccion", texto: "Dirección completa", seccion: "I. Datos generales del paciente", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_convivencia", texto: "¿Con quién vive actualmente?", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0.5, tipo: "unica",
+      id: "q_convivencia", texto: "¿Con quién vive actualmente?", seccion: "I. Datos generales del paciente", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "conv_solo", texto: "Vive solo/a", puntos: 6 },
         { id: "conv_padres", texto: "Con padres", puntos: 0 },
@@ -66,13 +66,13 @@ export const CONFIGURACION_DEMO: Configuracion = {
         { id: "conv_otro", texto: "Otro", puntos: 2 },
       ],
     },
-    { id: "q_personas_hogar", texto: "¿Cuántas personas viven en el hogar, incluyendo al paciente?", categoria: "datos_generales", seccion: "I. Datos generales del paciente", peso: 0, tipo: "numero", opciones: [] },
+    { id: "q_personas_hogar", texto: "¿Cuántas personas viven en el hogar, incluyendo al paciente?", seccion: "I. Datos generales del paciente", peso: 0, tipo: "numero", opciones: [] },
 
     // II. INFORMACION SOBRE LA DISCAPACIDAD
-    { id: "q_discapacidad_detalle", texto: "¿Cuál es la discapacidad que presenta?", categoria: "discapacidad", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_discapacidad_desde", texto: "¿Desde cuándo tiene la discapacidad?", categoria: "discapacidad", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_discapacidad_detalle", texto: "¿Cuál es la discapacidad que presenta?", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_discapacidad_desde", texto: "¿Desde cuándo tiene la discapacidad?", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_discapacidad_causa", texto: "¿Cuál fue la causa de la discapacidad?", categoria: "discapacidad", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "unica",
+      id: "q_discapacidad_causa", texto: "¿Cuál fue la causa de la discapacidad?", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "unica",
       opciones: [
         { id: "causa_nacimiento", texto: "De nacimiento", puntos: 0 },
         { id: "causa_enfermedad", texto: "Enfermedad", puntos: 0 },
@@ -83,7 +83,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_discapacidad_duracion", texto: "¿La discapacidad es permanente o temporal?", categoria: "discapacidad", seccion: "II. Información sobre la discapacidad", peso: 0.5, tipo: "unica",
+      id: "q_discapacidad_duracion", texto: "¿La discapacidad es permanente o temporal?", seccion: "II. Información sobre la discapacidad", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "dur_permanente", texto: "Permanente", puntos: 3 },
         { id: "dur_temporal", texto: "Temporal", puntos: 1 },
@@ -91,7 +91,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_dispositivo_asistencia", texto: "¿Utiliza algún instrumento, equipo o dispositivo para su discapacidad?", categoria: "discapacidad", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "multiple",
+      id: "q_dispositivo_asistencia", texto: "¿Utiliza algún instrumento, equipo o dispositivo para su discapacidad?", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "multiple",
       opciones: [
         { id: "disp_silla_ruedas", texto: "Silla de ruedas", puntos: 0 },
         { id: "disp_baston", texto: "Bastón", puntos: 0 },
@@ -104,7 +104,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_dispositivo_estado", texto: "¿El instrumento o equipo que utiliza se encuentra en buenas condiciones?", categoria: "discapacidad", seccion: "II. Información sobre la discapacidad", peso: 1, tipo: "unica",
+      id: "q_dispositivo_estado", texto: "¿El instrumento o equipo que utiliza se encuentra en buenas condiciones?", seccion: "II. Información sobre la discapacidad", peso: 1, tipo: "unica",
       opciones: [
         { id: "estado_si", texto: "Sí", puntos: 0 },
         { id: "estado_no", texto: "No", puntos: 8 },
@@ -113,11 +113,11 @@ export const CONFIGURACION_DEMO: Configuracion = {
         { id: "estado_no_aplica", texto: "No aplica", puntos: 0 },
       ],
     },
-    { id: "q_dificultad_principal", texto: "¿Qué dificultad principal le ocasiona su discapacidad?", categoria: "discapacidad", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_dificultad_principal", texto: "¿Qué dificultad principal le ocasiona su discapacidad?", seccion: "II. Información sobre la discapacidad", peso: 0, tipo: "texto", opciones: [] },
 
     // III. GRADO DE DEPENDENCIA Y ACTIVIDADES DIARIAS
     {
-      id: "q_ayuda_banarse", texto: "¿Necesita ayuda para bañarse?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
+      id: "q_ayuda_banarse", texto: "¿Necesita ayuda para bañarse?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
       opciones: [
         { id: "ban_no", texto: "No", puntos: 0 },
         { id: "ban_ocasional", texto: "Sí, ocasionalmente", puntos: 4 },
@@ -125,7 +125,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_ayuda_vestirse", texto: "¿Necesita ayuda para vestirse?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
+      id: "q_ayuda_vestirse", texto: "¿Necesita ayuda para vestirse?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
       opciones: [
         { id: "vest_no", texto: "No", puntos: 0 },
         { id: "vest_ocasional", texto: "Sí, ocasionalmente", puntos: 4 },
@@ -133,7 +133,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_ayuda_comer", texto: "¿Necesita ayuda para comer o preparar sus alimentos?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
+      id: "q_ayuda_comer", texto: "¿Necesita ayuda para comer o preparar sus alimentos?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
       opciones: [
         { id: "com_no", texto: "No", puntos: 0 },
         { id: "com_ocasional", texto: "Sí, ocasionalmente", puntos: 4 },
@@ -141,7 +141,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_ayuda_caminar", texto: "¿Necesita ayuda para caminar o desplazarse dentro de la vivienda?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
+      id: "q_ayuda_caminar", texto: "¿Necesita ayuda para caminar o desplazarse dentro de la vivienda?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
       opciones: [
         { id: "cam_no", texto: "No", puntos: 0 },
         { id: "cam_ocasional", texto: "Sí, ocasionalmente", puntos: 4 },
@@ -149,7 +149,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_ayuda_bano", texto: "¿Necesita ayuda para utilizar el baño?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
+      id: "q_ayuda_bano", texto: "¿Necesita ayuda para utilizar el baño?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
       opciones: [
         { id: "bnu_no", texto: "No", puntos: 0 },
         { id: "bnu_ocasional", texto: "Sí, ocasionalmente", puntos: 4 },
@@ -157,7 +157,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_ayuda_levantarse", texto: "¿Necesita ayuda para levantarse o acostarse?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
+      id: "q_ayuda_levantarse", texto: "¿Necesita ayuda para levantarse o acostarse?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
       opciones: [
         { id: "lev_no", texto: "No", puntos: 0 },
         { id: "lev_ocasional", texto: "Sí, ocasionalmente", puntos: 4 },
@@ -165,7 +165,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_sale_sin_ayuda", texto: "¿Puede salir de la vivienda sin ayuda de otra persona?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
+      id: "q_sale_sin_ayuda", texto: "¿Puede salir de la vivienda sin ayuda de otra persona?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1, tipo: "unica",
       opciones: [
         { id: "sale_si", texto: "Sí", puntos: 0 },
         { id: "sale_no", texto: "No", puntos: 8 },
@@ -173,7 +173,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_nivel_ayuda_general", texto: "En general, ¿qué nivel de ayuda necesita para realizar sus actividades diarias?", categoria: "dependencia", seccion: "III. Grado de dependencia y actividades diarias", peso: 1.5, tipo: "unica",
+      id: "q_nivel_ayuda_general", texto: "En general, ¿qué nivel de ayuda necesita para realizar sus actividades diarias?", seccion: "III. Grado de dependencia y actividades diarias", peso: 1.5, tipo: "unica",
       opciones: [
         { id: "nag_sin_ayuda", texto: "Puede realizar sus actividades sin ayuda", puntos: 0 },
         { id: "nag_poca_ayuda", texto: "Necesita poca ayuda", puntos: 3 },
@@ -184,43 +184,43 @@ export const CONFIGURACION_DEMO: Configuracion = {
 
     // IV. CUIDADOR PRINCIPAL Y RED DE APOYO
     {
-      id: "q_tiene_cuidador", texto: "¿Tiene una persona que lo cuide o ayude regularmente?", categoria: "cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 1, tipo: "unica",
+      id: "q_tiene_cuidador", texto: "¿Tiene una persona que lo cuide o ayude regularmente?", seccion: "IV. Cuidador principal y red de apoyo", peso: 1, tipo: "unica",
       opciones: [
         { id: "tc_si", texto: "Sí", puntos: 0 },
         { id: "tc_no", texto: "No", puntos: 8 },
       ],
     },
-    { id: "q_cuidador_nombre", texto: "Nombre del cuidador principal", categoria: "cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_cuidador_parentesco", texto: "Parentesco o relación con el paciente", categoria: "cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_cuidador_telefono", texto: "Número de teléfono del cuidador", categoria: "cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_cuidador_nombre", texto: "Nombre del cuidador principal", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_cuidador_parentesco", texto: "Parentesco o relación con el paciente", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_cuidador_telefono", texto: "Número de teléfono del cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_otra_persona_ayuda", texto: "¿Existe otra persona que ayude con el cuidado del paciente?", categoria: "cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 0.5, tipo: "unica",
+      id: "q_otra_persona_ayuda", texto: "¿Existe otra persona que ayude con el cuidado del paciente?", seccion: "IV. Cuidador principal y red de apoyo", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "opa_si", texto: "Sí", puntos: 0 },
         { id: "opa_no", texto: "No", puntos: 3 },
       ],
     },
     {
-      id: "q_cuidador_necesita_apoyo", texto: "¿El cuidador considera que necesita apoyo para poder cuidar al paciente?", categoria: "cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 1, tipo: "unica",
+      id: "q_cuidador_necesita_apoyo", texto: "¿El cuidador considera que necesita apoyo para poder cuidar al paciente?", seccion: "IV. Cuidador principal y red de apoyo", peso: 1, tipo: "unica",
       opciones: [
         { id: "cna_si", texto: "Sí", puntos: 6 },
         { id: "cna_no", texto: "No", puntos: 0 },
       ],
     },
-    { id: "q_cuidador_tipo_apoyo", texto: "¿Qué tipo de apoyo necesita el cuidador?", categoria: "cuidador", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_cuidador_tipo_apoyo", texto: "¿Qué tipo de apoyo necesita el cuidador?", seccion: "IV. Cuidador principal y red de apoyo", peso: 0, tipo: "texto", opciones: [] },
 
     // V. INFORMACION DE SALUD
     {
-      id: "q_otra_enfermedad", texto: "¿Padece alguna otra enfermedad o condición de salud?", categoria: "salud", seccion: "V. Información de salud", peso: 0.5, tipo: "unica",
+      id: "q_otra_enfermedad", texto: "¿Padece alguna otra enfermedad o condición de salud?", seccion: "V. Información de salud", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "oe_si", texto: "Sí", puntos: 4 },
         { id: "oe_no", texto: "No", puntos: 0 },
       ],
     },
-    { id: "q_otra_enfermedad_cual", texto: "¿Cuál/es enfermedad/es o condición/es de salud?", categoria: "salud", seccion: "V. Información de salud", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_medicamentos", texto: "¿Qué medicamentos utiliza actualmente?", categoria: "salud", seccion: "V. Información de salud", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_otra_enfermedad_cual", texto: "¿Cuál/es enfermedad/es o condición/es de salud?", seccion: "V. Información de salud", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_medicamentos", texto: "¿Qué medicamentos utiliza actualmente?", seccion: "V. Información de salud", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_dificultad_medicamentos", texto: "¿Tiene dificultad para conseguir sus medicamentos?", categoria: "salud", seccion: "V. Información de salud", peso: 1, tipo: "unica",
+      id: "q_dificultad_medicamentos", texto: "¿Tiene dificultad para conseguir sus medicamentos?", seccion: "V. Información de salud", peso: 1, tipo: "unica",
       opciones: [
         { id: "dm_si", texto: "Sí", puntos: 8 },
         { id: "dm_no", texto: "No", puntos: 0 },
@@ -228,15 +228,15 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_atencion_medica_periodica", texto: "¿Recibe atención médica periódicamente?", categoria: "salud", seccion: "V. Información de salud", peso: 1, tipo: "unica",
+      id: "q_atencion_medica_periodica", texto: "¿Recibe atención médica periódicamente?", seccion: "V. Información de salud", peso: 1, tipo: "unica",
       opciones: [
         { id: "amp_si", texto: "Sí", puntos: 0 },
         { id: "amp_no", texto: "No", puntos: 8 },
       ],
     },
-    { id: "q_donde_atencion_medica", texto: "¿Dónde recibe atención médica?", categoria: "salud", seccion: "V. Información de salud", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_donde_atencion_medica", texto: "¿Dónde recibe atención médica?", seccion: "V. Información de salud", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_seguro_medico", texto: "¿Qué tipo de seguro médico tiene?", categoria: "salud", seccion: "V. Información de salud", peso: 1, tipo: "unica",
+      id: "q_seguro_medico", texto: "¿Qué tipo de seguro médico tiene?", seccion: "V. Información de salud", peso: 1, tipo: "unica",
       opciones: [
         { id: "sm_senasa_subsidiado", texto: "SENASA subsidiado", puntos: 3 },
         { id: "sm_senasa_contributivo", texto: "SENASA contributivo", puntos: 1 },
@@ -248,14 +248,14 @@ export const CONFIGURACION_DEMO: Configuracion = {
 
     // VI. REHABILITACION Y TERAPIAS
     {
-      id: "q_recibe_rehabilitacion", texto: "¿Recibe actualmente algún tipo de rehabilitación o terapia?", categoria: "rehabilitacion", seccion: "VI. Rehabilitación y terapias", peso: 1, tipo: "unica",
+      id: "q_recibe_rehabilitacion", texto: "¿Recibe actualmente algún tipo de rehabilitación o terapia?", seccion: "VI. Rehabilitación y terapias", peso: 1, tipo: "unica",
       opciones: [
         { id: "rr_si", texto: "Sí", puntos: 0 },
         { id: "rr_no", texto: "No", puntos: 6 },
       ],
     },
     {
-      id: "q_tipo_terapia", texto: "¿Qué tipo de terapia recibe?", categoria: "rehabilitacion", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "multiple",
+      id: "q_tipo_terapia", texto: "¿Qué tipo de terapia recibe?", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "multiple",
       opciones: [
         { id: "tt_fisioterapia", texto: "Fisioterapia", puntos: 0 },
         { id: "tt_ocupacional", texto: "Terapia ocupacional", puntos: 0 },
@@ -266,7 +266,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_frecuencia_terapia", texto: "¿Con qué frecuencia recibe la terapia?", categoria: "rehabilitacion", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "unica",
+      id: "q_frecuencia_terapia", texto: "¿Con qué frecuencia recibe la terapia?", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "unica",
       opciones: [
         { id: "ft_diariamente", texto: "Diariamente", puntos: 0 },
         { id: "ft_varias_semana", texto: "Varias veces por semana", puntos: 0 },
@@ -275,18 +275,18 @@ export const CONFIGURACION_DEMO: Configuracion = {
         { id: "ft_otro", texto: "Otro", puntos: 0 },
       ],
     },
-    { id: "q_donde_rehabilitacion", texto: "¿Dónde recibe la rehabilitación o terapia?", categoria: "rehabilitacion", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_donde_rehabilitacion", texto: "¿Dónde recibe la rehabilitación o terapia?", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_necesita_rehabilitacion_no_recibe", texto: "¿Necesita algún tipo de rehabilitación o terapia que actualmente no recibe?", categoria: "rehabilitacion", seccion: "VI. Rehabilitación y terapias", peso: 1, tipo: "unica",
+      id: "q_necesita_rehabilitacion_no_recibe", texto: "¿Necesita algún tipo de rehabilitación o terapia que actualmente no recibe?", seccion: "VI. Rehabilitación y terapias", peso: 1, tipo: "unica",
       opciones: [
         { id: "nrn_si", texto: "Sí", puntos: 8 },
         { id: "nrn_no", texto: "No", puntos: 0 },
         { id: "nrn_no_sabe", texto: "No sabe", puntos: 3 },
       ],
     },
-    { id: "q_rehabilitacion_cual", texto: "¿Cuál rehabilitación o terapia necesita y no recibe?", categoria: "rehabilitacion", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_rehabilitacion_cual", texto: "¿Cuál rehabilitación o terapia necesita y no recibe?", seccion: "VI. Rehabilitación y terapias", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_dificultad_rehabilitacion", texto: "¿Cuál es la principal dificultad para recibir la rehabilitación que necesita?", categoria: "rehabilitacion", seccion: "VI. Rehabilitación y terapias", peso: 0.5, tipo: "unica",
+      id: "q_dificultad_rehabilitacion", texto: "¿Cuál es la principal dificultad para recibir la rehabilitación que necesita?", seccion: "VI. Rehabilitación y terapias", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "dr_dinero", texto: "Falta de dinero", puntos: 6 },
         { id: "dr_transporte", texto: "Falta de transporte", puntos: 6 },
@@ -300,7 +300,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
 
     // VII. ACCESO AL TRANSPORTE
     {
-      id: "q_facilidad_traslado", texto: "¿Tiene facilidad para trasladarse a citas médicas, hospitales o centros de rehabilitación?", categoria: "transporte", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
+      id: "q_facilidad_traslado", texto: "¿Tiene facilidad para trasladarse a citas médicas, hospitales o centros de rehabilitación?", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
       opciones: [
         { id: "flt_si", texto: "Sí", puntos: 0 },
         { id: "flt_no", texto: "No", puntos: 8 },
@@ -308,7 +308,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_medio_transporte", texto: "¿Qué medio de transporte utiliza normalmente?", categoria: "transporte", seccion: "VII. Acceso al transporte", peso: 0, tipo: "unica",
+      id: "q_medio_transporte", texto: "¿Qué medio de transporte utiliza normalmente?", seccion: "VII. Acceso al transporte", peso: 0, tipo: "unica",
       opciones: [
         { id: "mt_publico", texto: "Transporte público", puntos: 0 },
         { id: "mt_familiar", texto: "Vehículo familiar", puntos: 0 },
@@ -318,14 +318,14 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_discapacidad_dificulta_transporte", texto: "¿La discapacidad dificulta el uso del transporte?", categoria: "transporte", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
+      id: "q_discapacidad_dificulta_transporte", texto: "¿La discapacidad dificulta el uso del transporte?", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
       opciones: [
         { id: "ddt_si", texto: "Sí", puntos: 6 },
         { id: "ddt_no", texto: "No", puntos: 0 },
       ],
     },
     {
-      id: "q_necesita_acompanante_transporte", texto: "¿Necesita que otra persona lo acompañe para trasladarse?", categoria: "transporte", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
+      id: "q_necesita_acompanante_transporte", texto: "¿Necesita que otra persona lo acompañe para trasladarse?", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
       opciones: [
         { id: "nat_siempre", texto: "Sí, siempre", puntos: 8 },
         { id: "nat_algunas_veces", texto: "Sí, algunas veces", puntos: 4 },
@@ -333,14 +333,14 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_dejo_asistir_por_transporte", texto: "¿Ha dejado de asistir a citas médicas o terapias por falta de transporte?", categoria: "transporte", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
+      id: "q_dejo_asistir_por_transporte", texto: "¿Ha dejado de asistir a citas médicas o terapias por falta de transporte?", seccion: "VII. Acceso al transporte", peso: 1, tipo: "unica",
       opciones: [
         { id: "dap_si", texto: "Sí", puntos: 8 },
         { id: "dap_no", texto: "No", puntos: 0 },
       ],
     },
     {
-      id: "q_necesita_apoyo_transporte", texto: "¿Necesita apoyo de transporte para recibir atención médica o rehabilitación?", categoria: "transporte", seccion: "VII. Acceso al transporte", peso: 0.5, tipo: "unica",
+      id: "q_necesita_apoyo_transporte", texto: "¿Necesita apoyo de transporte para recibir atención médica o rehabilitación?", seccion: "VII. Acceso al transporte", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "napt_si", texto: "Sí", puntos: 6 },
         { id: "napt_no", texto: "No", puntos: 0 },
@@ -349,7 +349,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
 
     // VIII. APOYO SOCIAL Y SITUACION ECONOMICA
     {
-      id: "q_apoyo_social", texto: "¿Recibe actualmente algún apoyo social?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 1, tipo: "multiple",
+      id: "q_apoyo_social", texto: "¿Recibe actualmente algún apoyo social?", seccion: "VIII. Apoyo social y situación económica", peso: 1, tipo: "multiple",
       opciones: [
         { id: "as_bono_gas", texto: "Bono Gas", puntos: 0 },
         { id: "as_bono_luz", texto: "Bono Luz", puntos: 0 },
@@ -359,22 +359,22 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_ayuda_economica_familiar", texto: "¿Recibe ayuda económica o material de algún familiar?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 0.5, tipo: "unica",
+      id: "q_ayuda_economica_familiar", texto: "¿Recibe ayuda económica o material de algún familiar?", seccion: "VIII. Apoyo social y situación económica", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "aef_si", texto: "Sí", puntos: 0 },
         { id: "aef_no", texto: "No", puntos: 4 },
       ],
     },
     {
-      id: "q_ayuda_institucion", texto: "¿Recibe ayuda de alguna institución, iglesia, fundación u organización?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 0.5, tipo: "unica",
+      id: "q_ayuda_institucion", texto: "¿Recibe ayuda de alguna institución, iglesia, fundación u organización?", seccion: "VIII. Apoyo social y situación económica", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "ai_si", texto: "Sí", puntos: 0 },
         { id: "ai_no", texto: "No", puntos: 4 },
       ],
     },
-    { id: "q_ayuda_institucion_cual", texto: "¿Cuál institución le brinda ayuda?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_ayuda_institucion_cual", texto: "¿Cuál institución le brinda ayuda?", seccion: "VIII. Apoyo social y situación económica", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_fuente_ingresos", texto: "¿Cuál es la principal fuente de ingresos del hogar?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 1, tipo: "unica",
+      id: "q_fuente_ingresos", texto: "¿Cuál es la principal fuente de ingresos del hogar?", seccion: "VIII. Apoyo social y situación económica", peso: 1, tipo: "unica",
       opciones: [
         { id: "fi_trabajo_paciente", texto: "Trabajo del paciente", puntos: 0 },
         { id: "fi_trabajo_familiar", texto: "Trabajo de un familiar", puntos: 2 },
@@ -386,9 +386,9 @@ export const CONFIGURACION_DEMO: Configuracion = {
         { id: "fi_otra", texto: "Otra", puntos: 3 },
       ],
     },
-    { id: "q_personas_generan_ingresos", texto: "¿Cuántas personas del hogar generan ingresos?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 0, tipo: "numero", opciones: [] },
+    { id: "q_personas_generan_ingresos", texto: "¿Cuántas personas del hogar generan ingresos?", seccion: "VIII. Apoyo social y situación económica", peso: 0, tipo: "numero", opciones: [] },
     {
-      id: "q_ingreso_mensual", texto: "Aproximadamente, ¿cuál es el ingreso mensual total del hogar?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 1.5, tipo: "unica",
+      id: "q_ingreso_mensual", texto: "Aproximadamente, ¿cuál es el ingreso mensual total del hogar?", seccion: "VIII. Apoyo social y situación económica", peso: 1.5, tipo: "unica",
       opciones: [
         { id: "im_sin_ingresos", texto: "No tiene ingresos", puntos: 10 },
         { id: "im_menos_10000", texto: "Menos de RD$10,000", puntos: 8 },
@@ -400,7 +400,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_ingreso_suficiente", texto: "¿El ingreso del hogar es suficiente para cubrir las necesidades básicas del paciente?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 1, tipo: "unica",
+      id: "q_ingreso_suficiente", texto: "¿El ingreso del hogar es suficiente para cubrir las necesidades básicas del paciente?", seccion: "VIII. Apoyo social y situación económica", peso: 1, tipo: "unica",
       opciones: [
         { id: "is_si", texto: "Sí", puntos: 0 },
         { id: "is_no", texto: "No", puntos: 8 },
@@ -408,7 +408,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_dificultades_economicas", texto: "¿Cuáles son las principales dificultades económicas relacionadas con el cuidado del paciente?", categoria: "economica", seccion: "VIII. Apoyo social y situación económica", peso: 0, tipo: "multiple",
+      id: "q_dificultades_economicas", texto: "¿Cuáles son las principales dificultades económicas relacionadas con el cuidado del paciente?", seccion: "VIII. Apoyo social y situación económica", peso: 0, tipo: "multiple",
       opciones: [
         { id: "de_alimentacion", texto: "Alimentación", puntos: 0 },
         { id: "de_medicamentos", texto: "Medicamentos", puntos: 0 },
@@ -423,10 +423,10 @@ export const CONFIGURACION_DEMO: Configuracion = {
     },
 
     // IX. NECESIDADES ACTUALES DEL PACIENTE
-    { id: "q_solicita_actualmente", texto: "¿Qué solicita actualmente el paciente?", categoria: "necesidades", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_necesidad_urgente", texto: "¿Cuál considera que es la necesidad más urgente?", categoria: "necesidades", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_solicita_actualmente", texto: "¿Qué solicita actualmente el paciente?", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_necesidad_urgente", texto: "¿Cuál considera que es la necesidad más urgente?", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_tipo_ayuda_necesita", texto: "¿Qué tipo de ayuda necesita actualmente?", categoria: "necesidades", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "multiple",
+      id: "q_tipo_ayuda_necesita", texto: "¿Qué tipo de ayuda necesita actualmente?", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "multiple",
       opciones: [
         { id: "tan_alimentos", texto: "Alimentos", puntos: 0 },
         { id: "tan_medicamentos", texto: "Medicamentos", puntos: 0 },
@@ -448,22 +448,22 @@ export const CONFIGURACION_DEMO: Configuracion = {
         { id: "tan_otro", texto: "Otro", puntos: 0 },
       ],
     },
-    { id: "q_una_sola_ayuda", texto: "Si pudiera recibir una sola ayuda en este momento, ¿cuál sería?", categoria: "necesidades", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_una_sola_ayuda", texto: "Si pudiera recibir una sola ayuda en este momento, ¿cuál sería?", seccion: "IX. Necesidades actuales del paciente", peso: 0, tipo: "texto", opciones: [] },
 
     // X. PERSONA DE REFERENCIA
     {
-      id: "q_existe_persona_referencia", texto: "¿Existe una persona de referencia o contacto en caso de emergencia?", categoria: "referencia", seccion: "X. Persona de referencia", peso: 0.5, tipo: "unica",
+      id: "q_existe_persona_referencia", texto: "¿Existe una persona de referencia o contacto en caso de emergencia?", seccion: "X. Persona de referencia", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "epr_si", texto: "Sí", puntos: 0 },
         { id: "epr_no", texto: "No", puntos: 6 },
       ],
     },
-    { id: "q_referencia_nombre", texto: "Nombre completo de la persona de referencia", categoria: "referencia", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_referencia_parentesco", texto: "Parentesco o relación con el paciente", categoria: "referencia", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_referencia_telefono", texto: "Número de teléfono de la persona de referencia", categoria: "referencia", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_referencia_direccion", texto: "Dirección de la persona de referencia, si es diferente a la del paciente", categoria: "referencia", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_referencia_nombre", texto: "Nombre completo de la persona de referencia", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_referencia_parentesco", texto: "Parentesco o relación con el paciente", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_referencia_telefono", texto: "Número de teléfono de la persona de referencia", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_referencia_direccion", texto: "Dirección de la persona de referencia, si es diferente a la del paciente", seccion: "X. Persona de referencia", peso: 0, tipo: "texto", opciones: [] },
     {
-      id: "q_referencia_participa_cuidado", texto: "¿La persona de referencia participa en el cuidado del paciente?", categoria: "referencia", seccion: "X. Persona de referencia", peso: 0.5, tipo: "unica",
+      id: "q_referencia_participa_cuidado", texto: "¿La persona de referencia participa en el cuidado del paciente?", seccion: "X. Persona de referencia", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "rpc_si", texto: "Sí", puntos: 0 },
         { id: "rpc_no", texto: "No", puntos: 3 },
@@ -472,7 +472,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
 
     // XI. INFORMACION SOBRE LA VIVIENDA
     {
-      id: "q_vivienda_tipo", texto: "La vivienda donde reside el paciente es:", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 0.5, tipo: "unica",
+      id: "q_vivienda_tipo", texto: "La vivienda donde reside el paciente es:", seccion: "XI. Información sobre la vivienda", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "vt_propia", texto: "Propia", puntos: 0 },
         { id: "vt_alquilada", texto: "Alquilada", puntos: 2 },
@@ -481,7 +481,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_material_paredes", texto: "Material predominante de las paredes", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 0.5, tipo: "unica",
+      id: "q_material_paredes", texto: "Material predominante de las paredes", seccion: "XI. Información sobre la vivienda", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "mp_bloques_concreto", texto: "Bloques/concreto", puntos: 0 },
         { id: "mp_madera", texto: "Madera", puntos: 3 },
@@ -490,7 +490,7 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_material_techo", texto: "Material predominante del techo", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 0.5, tipo: "unica",
+      id: "q_material_techo", texto: "Material predominante del techo", seccion: "XI. Información sobre la vivienda", peso: 0.5, tipo: "unica",
       opciones: [
         { id: "mtc_concreto", texto: "Concreto", puntos: 0 },
         { id: "mtc_zinc", texto: "Zinc", puntos: 3 },
@@ -498,24 +498,24 @@ export const CONFIGURACION_DEMO: Configuracion = {
         { id: "mtc_otro", texto: "Otro", puntos: 3 },
       ],
     },
-    { id: "q_habitaciones", texto: "¿Cuántas habitaciones tiene la vivienda?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 0, tipo: "numero", opciones: [] },
-    { id: "q_camas", texto: "¿Cuántas camas hay en la vivienda?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 0, tipo: "numero", opciones: [] },
+    { id: "q_habitaciones", texto: "¿Cuántas habitaciones tiene la vivienda?", seccion: "XI. Información sobre la vivienda", peso: 0, tipo: "numero", opciones: [] },
+    { id: "q_camas", texto: "¿Cuántas camas hay en la vivienda?", seccion: "XI. Información sobre la vivienda", peso: 0, tipo: "numero", opciones: [] },
     {
-      id: "q_cama_propia", texto: "¿El paciente tiene una cama propia?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
+      id: "q_cama_propia", texto: "¿El paciente tiene una cama propia?", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
       opciones: [
         { id: "cp_si", texto: "Sí", puntos: 0 },
         { id: "cp_no", texto: "No", puntos: 6 },
       ],
     },
     {
-      id: "q_bano_ubicacion", texto: "¿El baño está dentro o fuera de la vivienda?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
+      id: "q_bano_ubicacion", texto: "¿El baño está dentro o fuera de la vivienda?", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
       opciones: [
         { id: "bu_dentro", texto: "Dentro de la vivienda", puntos: 0 },
         { id: "bu_fuera", texto: "Fuera de la vivienda", puntos: 5 },
       ],
     },
     {
-      id: "q_acceso_silla_ruedas", texto: "¿La entrada de la vivienda permite el acceso de una silla de ruedas o de una persona con movilidad reducida?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
+      id: "q_acceso_silla_ruedas", texto: "¿La entrada de la vivienda permite el acceso de una silla de ruedas o de una persona con movilidad reducida?", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
       opciones: [
         { id: "asr_si", texto: "Sí", puntos: 0 },
         { id: "asr_no", texto: "No", puntos: 8 },
@@ -523,21 +523,21 @@ export const CONFIGURACION_DEMO: Configuracion = {
       ],
     },
     {
-      id: "q_escaleras_desniveles", texto: "¿Existen escaleras o desniveles que dificulten el acceso del paciente?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
+      id: "q_escaleras_desniveles", texto: "¿Existen escaleras o desniveles que dificulten el acceso del paciente?", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
       opciones: [
         { id: "ed_si", texto: "Sí", puntos: 6 },
         { id: "ed_no", texto: "No", puntos: 0 },
       ],
     },
     {
-      id: "q_agua_potable", texto: "¿La vivienda cuenta con agua potable?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
+      id: "q_agua_potable", texto: "¿La vivienda cuenta con agua potable?", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
       opciones: [
         { id: "ap_si", texto: "Sí", puntos: 0 },
         { id: "ap_no", texto: "No", puntos: 8 },
       ],
     },
     {
-      id: "q_electricidad", texto: "¿Cuenta con electricidad?", categoria: "vivienda", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
+      id: "q_electricidad", texto: "¿Cuenta con electricidad?", seccion: "XI. Información sobre la vivienda", peso: 1, tipo: "unica",
       opciones: [
         { id: "el_si", texto: "Sí", puntos: 0 },
         { id: "el_no", texto: "No", puntos: 8 },
@@ -549,9 +549,9 @@ export const CONFIGURACION_DEMO: Configuracion = {
     // lo calcula solo a partir del puntaje de las respuestas anteriores y de
     // las reglas criticas (ver puntuacion.reglasCriticas mas abajo), y se
     // muestra bloqueado en el paso de resultado.
-    { id: "q_principal_necesidad", texto: "Según la información recopilada, ¿cuál es la principal necesidad del paciente?", categoria: "evaluacion", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_ayuda_recomendada", texto: "Tipo de ayuda que se recomienda gestionar", categoria: "evaluacion", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
-    { id: "q_observaciones", texto: "Observaciones adicionales del encuestador", categoria: "evaluacion", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_principal_necesidad", texto: "Según la información recopilada, ¿cuál es la principal necesidad del paciente?", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_ayuda_recomendada", texto: "Tipo de ayuda que se recomienda gestionar", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
+    { id: "q_observaciones", texto: "Observaciones adicionales del encuestador", seccion: "XII. Evaluación y priorización del caso", peso: 0, tipo: "texto", opciones: [] },
   ],
   puntuacion: {
     direccion: "mayor_es_mas_vulnerable",

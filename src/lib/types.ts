@@ -27,7 +27,6 @@ export interface OpcionPregunta {
 export interface Pregunta {
   id: string;
   texto: string;
-  categoria: string;
   // seccion de la encuesta, ej. "I. Datos generales del paciente".
   // el orden de las secciones sigue el orden del array `preguntas`.
   seccion: string;
