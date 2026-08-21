@@ -16,7 +16,28 @@ const ETIQUETAS_FOTO: Record<string, string> = {
 const ORDEN_FOTO = ["cedula_frontal", "cedula_posterior", "foto_participante"] as const;
 
 const ALTO_FILA_CON_FOTO = 90; // puntos -- suficiente para que la miniatura no quede recortada
-const LADO_MINIATURA = 110; // px
+const LADO_MAXIMO_MINIATURA = 120; // px -- lado mayor de la miniatura; el otro lado se calcula segun la proporcion real de la foto
+
+/** Dimensiones reales de la imagen (decodificandola en el navegador) --
+ * las fotos de camara nunca son cuadradas, y forzar un tamaño fijo
+ * width/height en exceljs las deja estiradas/aplastadas. Se calcula un
+ * tamaño que respeta la proporcion original y entra en un cuadro de
+ * LADO_MAXIMO_MINIATURA. */
+function medirImagen(base64: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const { naturalWidth: w, naturalHeight: h } = img;
+      if (w >= h) {
+        resolve({ width: LADO_MAXIMO_MINIATURA, height: Math.round((LADO_MAXIMO_MINIATURA * h) / w) });
+      } else {
+        resolve({ width: Math.round((LADO_MAXIMO_MINIATURA * w) / h), height: LADO_MAXIMO_MINIATURA });
+      }
+    };
+    img.onerror = () => reject(new Error("No se pudo leer las dimensiones de la foto."));
+    img.src = `data:image/jpeg;base64,${base64}`;
+  });
+}
 
 function discapacidadDe(e: Encuesta): string {
   return e.respuestas.find((r) => r.preguntaId === "q_discapacidad_detalle")?.valorTexto || "-";
@@ -121,11 +142,12 @@ async function generarLibroEncuestas(): Promise<{ nombreArchivo: string; base64:
       if (!foto) continue;
       const base64Foto = await descargarFotoBase64(foto.storagePath);
       if (!base64Foto) continue;
+      const { width, height } = await medirImagen(base64Foto);
       const imagenId = libro.addImage({ base64: base64Foto, extension: "jpeg" });
       const columna = hoja.getColumn(tipo).number - 1; // addImage usa indice de columna base 0
       hoja.addImage(imagenId, {
         tl: { col: columna, row: fila.number - 1 },
-        ext: { width: LADO_MINIATURA, height: LADO_MINIATURA },
+        ext: { width, height },
         editAs: "oneCell",
       });
     }
