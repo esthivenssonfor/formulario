@@ -8,8 +8,16 @@ import { Button } from "@/components/ui";
 
 /**
  * Espejo de flutter/lib/widgets/photo_capture_field.dart: tomar/seleccionar
- * foto -> vista previa -> "volver a tomar"/"usar esta foto", mismo
- * pipeline de compresion.
+ * foto -> vista previa -> "volver a tomar", mismo pipeline de compresion.
+ *
+ * La foto se confirma SOLA en cuanto se elige/toma y se procesa -- antes
+ * exigia un click aparte en "Usar esta foto" despues de la vista previa, y
+ * se perdian fotos en silencio: el usuario elegia la imagen, la vista
+ * previa se mostraba, pero si pasaba a la siguiente pregunta sin acordarse
+ * de ese segundo click, onConfirmada() nunca se llamaba y la encuesta se
+ * guardaba sin la foto sin ningun aviso (confirmado revisando los logs de
+ * Supabase: la encuesta se inserto pero jamas se llego a llamar
+ * storage.upload). "Volver a tomar" sigue disponible para reemplazarla.
  *
  * "Tomar fotografia" usa @capacitor/camera dentro de la app empaquetada --
  * un <input capture> normal NO abre la camara de forma confiable en el
@@ -43,7 +51,8 @@ export function PhotoCaptureField({
     try {
       const blob = tipo === "foto_participante" ? await procesarPerfil(origen) : await procesarCedula(origen);
       setVistaPrevia({ url: URL.createObjectURL(blob), blob });
-      setConfirmada(false);
+      onConfirmada(blob);
+      setConfirmada(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo procesar la foto.");
     } finally {
@@ -80,12 +89,7 @@ export function PhotoCaptureField({
   function volverATomar() {
     if (vistaPrevia) URL.revokeObjectURL(vistaPrevia.url);
     setVistaPrevia(null);
-  }
-
-  function usarEstaFoto() {
-    if (!vistaPrevia) return;
-    onConfirmada(vistaPrevia.blob);
-    setConfirmada(true);
+    setConfirmada(false);
   }
 
   return (
@@ -146,12 +150,10 @@ export function PhotoCaptureField({
         <>
           {/* eslint-disable-next-line @next/next/no-img-element -- blob: URL, no aplica next/image */}
           <img src={vistaPrevia.url} alt="Vista previa" className="mt-3 h-44 w-full rounded-lg object-cover" />
+          <p className="mt-1.5 text-sm text-success">Foto guardada.</p>
           <div className="mt-3 flex gap-2">
             <Button type="button" variant="secondary" onClick={volverATomar} className="px-4 py-2 text-sm">
               Volver a tomar
-            </Button>
-            <Button type="button" onClick={usarEstaFoto} className="px-4 py-2 text-sm">
-              Usar esta foto
             </Button>
           </div>
         </>

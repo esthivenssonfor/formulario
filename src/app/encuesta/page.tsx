@@ -405,10 +405,17 @@ function EncuestaContenido() {
                     {(p.tipo === "texto" || p.tipo === "fecha" || p.tipo === "numero") && (
                       <TextInput
                         type={p.tipo === "texto" ? "text" : p.tipo === "fecha" ? "date" : "number"}
+                        inputMode={p.tipo === "numero" ? "numeric" : undefined}
+                        pattern={p.tipo === "numero" ? "[0-9]*" : undefined}
                         value={valores[p.id] ?? ""}
-                        onChange={(e) =>
-                          setValores((prev) => ({ ...prev, [p.id]: e.target.value }))
-                        }
+                        onChange={(e) => {
+                          // type="number" no bloquea letras/simbolos en todos los
+                          // navegadores/WebViews (ej. Android) -- se filtra a mano
+                          // para que este campo solo acepte digitos de verdad.
+                          const valor =
+                            p.tipo === "numero" ? e.target.value.replace(/[^0-9]/g, "") : e.target.value;
+                          setValores((prev) => ({ ...prev, [p.id]: valor }));
+                        }}
                         className="mt-3 w-full"
                       />
                     )}
