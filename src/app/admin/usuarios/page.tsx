@@ -107,14 +107,14 @@ function UsuariosContenido() {
   }
 
   async function restablecerPassword(u: Profile) {
-    if (!confirm(`Generar una contraseña nueva para "${u.username}"?`)) return;
+    if (!confirm(`Cambiar la contraseña de "${u.username}" por una nueva?`)) return;
     setMensaje(null);
     const nueva = generarPasswordInicial();
     try {
       await actualizarUsuario(u.id, { password: nueva });
       setMensaje({
         tipo: "ok",
-        texto: `Contraseña de "${u.username}" restablecida a: ${nueva} -- compartila por un canal seguro.`,
+        texto: `Contraseña de "${u.username}" cambiada a: ${nueva} -- compartila por un canal seguro.`,
       });
     } catch (err) {
       setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "Error." });
@@ -187,7 +187,12 @@ function UsuariosContenido() {
             <span className="font-medium text-ink">
               Nombre <span className="text-danger" aria-hidden="true">*</span>
             </span>
-            <TextInput value={nombre} onChange={(e) => setNombre(e.target.value)} required />
+            <TextInput
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              className="w-full"
+            />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="font-medium text-ink">
@@ -201,6 +206,7 @@ function UsuariosContenido() {
               spellCheck={false}
               required
               aria-invalid={!usernameEsValido}
+              className="w-full"
             />
             {!usernameEsValido && (
               <span className="text-xs text-danger">
@@ -214,6 +220,7 @@ function UsuariosContenido() {
               type="email"
               value={emailContacto}
               onChange={(e) => setEmailContacto(e.target.value)}
+              className="w-full"
             />
             <span className="text-xs text-ink-muted">
               Solo para contactar a la persona -- no se usa para iniciar sesion.
@@ -247,7 +254,7 @@ function UsuariosContenido() {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as Rol)}
-              className="rounded-lg border border-line-strong bg-surface px-4 py-3 text-base text-ink focus-visible:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
+              className="w-full rounded-lg border border-line-strong bg-surface px-4 py-3 text-base text-ink focus-visible:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
             >
               <option value="user">Usuario</option>
               <option value="admin">Administrador</option>
@@ -271,7 +278,103 @@ function UsuariosContenido() {
         ) : usuarios.length === 0 ? (
           <p className="mt-4 text-ink-muted">Todavia no hay usuarios registrados.</p>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-xl border border-line">
+          <>
+            {/* Mobile (< sm): tarjetas -- una tabla de 5 columnas obliga a
+                deslizar hacia los lados en pantallas chicas. */}
+            <div className="mt-4 flex flex-col gap-3 sm:hidden">
+              {usuarios.map((u) => {
+                const esYoMismo = u.id === user?.id;
+                return (
+                  <div key={u.id} className="rounded-xl border border-line bg-surface p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-ink">
+                          {u.nombre ?? "-"} {esYoMismo && <span className="text-xs font-normal text-ink-muted">(vos)</span>}
+                        </p>
+                        <p className="text-sm text-ink-muted">{u.username}</p>
+                      </div>
+                      <button
+                        onClick={() => toggleActivo(u)}
+                        disabled={esYoMismo}
+                        className={`shrink-0 rounded-full px-3 py-1 text-sm font-semibold disabled:opacity-40 ${
+                          u.activo ? "bg-success-soft text-success" : "bg-surface-2 text-ink-muted"
+                        }`}
+                      >
+                        {u.activo ? "Activo" : "Desactivado"}
+                      </button>
+                    </div>
+
+                    {editandoEmailId === u.id ? (
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <TextInput
+                          type="email"
+                          value={emailEditado}
+                          onChange={(e) => setEmailEditado(e.target.value)}
+                          placeholder="correo@ejemplo.com"
+                          autoFocus
+                          className="w-full py-1 text-xs"
+                        />
+                        <button
+                          onClick={() => guardarEmail(u.id)}
+                          disabled={guardandoEmail}
+                          className="shrink-0 text-xs font-semibold text-success"
+                        >
+                          Guardar
+                        </button>
+                        <button onClick={cancelarEdicionEmail} className="shrink-0 text-xs font-medium text-ink-muted">
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-1 flex items-center gap-1.5 text-xs">
+                        {u.email ?? <span className="italic text-ink-muted">sin correo</span>}
+                        <button
+                          onClick={() => iniciarEdicionEmail(u)}
+                          className="font-medium text-brand underline underline-offset-2"
+                        >
+                          Editar
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="mt-3">
+                      <select
+                        value={u.role}
+                        disabled={esYoMismo}
+                        onChange={(e) => cambiarRol(u, e.target.value as Rol)}
+                        className={`w-full rounded-lg border px-2 py-1.5 text-sm font-medium disabled:opacity-40 ${
+                          u.role === "admin"
+                            ? "border-brand bg-brand-soft text-brand"
+                            : "border-line-strong bg-surface-2 text-ink-muted"
+                        }`}
+                      >
+                        <option value="user">Usuario</option>
+                        <option value="admin">Administrador</option>
+                      </select>
+                    </div>
+
+                    <div className="mt-3 flex gap-4">
+                      <button
+                        onClick={() => restablecerPassword(u)}
+                        className="text-sm font-medium text-brand underline underline-offset-2"
+                      >
+                        Cambiar contraseña
+                      </button>
+                      <button
+                        onClick={() => eliminar(u)}
+                        disabled={esYoMismo}
+                        className="text-sm font-medium text-danger underline underline-offset-2 disabled:opacity-40"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop/tablet (>= sm): tabla completa. */}
+            <div className="mt-4 hidden overflow-x-auto rounded-xl border border-line sm:block">
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-line bg-surface text-sm text-ink-muted">
@@ -354,7 +457,7 @@ function UsuariosContenido() {
                           onClick={() => restablecerPassword(u)}
                           className="mr-4 font-medium text-brand underline underline-offset-2"
                         >
-                          Restablecer contraseña
+                          Cambiar contraseña
                         </button>
                         <button
                           onClick={() => eliminar(u)}
@@ -369,7 +472,8 @@ function UsuariosContenido() {
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </section>
     </main>

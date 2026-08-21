@@ -18,11 +18,15 @@ export default function AdminPage() {
   const [encuestas, setEncuestas] = useState<Encuesta[]>([]);
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
 
-  // eliminar una encuesta pide re-confirmar la contraseña del admin logueado.
-  const [aEliminar, setAEliminar] = useState<Encuesta | null>(null);
+  // eliminar (una o varias) pide re-confirmar la contraseña del admin
+  // logueado -- idsAEliminar vacio significa que el dialogo esta cerrado,
+  // con 1 o mas ids abre el mismo dialogo para el borrado individual o
+  // en bloque (checkboxes + "Eliminar seleccionadas").
+  const [idsAEliminar, setIdsAEliminar] = useState<string[]>([]);
   const [passwordConfirmar, setPasswordConfirmar] = useState("");
   const [eliminando, setEliminando] = useState(false);
   const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
+  const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
 
   const [exportando, setExportando] = useState(false);
   const [errorExportar, setErrorExportar] = useState<string | null>(null);
@@ -88,19 +92,39 @@ export default function AdminPage() {
   }
 
   function pedirEliminar(e: Encuesta) {
-    setAEliminar(e);
+    setIdsAEliminar([e.id]);
+    setPasswordConfirmar("");
+    setErrorEliminar(null);
+  }
+
+  function pedirEliminarSeleccionadas() {
+    if (seleccionadas.size === 0) return;
+    setIdsAEliminar([...seleccionadas]);
     setPasswordConfirmar("");
     setErrorEliminar(null);
   }
 
   function cancelarEliminar() {
-    setAEliminar(null);
+    setIdsAEliminar([]);
     setPasswordConfirmar("");
     setErrorEliminar(null);
   }
 
+  function alternarSeleccion(id: string) {
+    setSeleccionadas((prev) => {
+      const nuevo = new Set(prev);
+      if (nuevo.has(id)) nuevo.delete(id);
+      else nuevo.add(id);
+      return nuevo;
+    });
+  }
+
+  function alternarSeleccionTodas() {
+    setSeleccionadas((prev) => (prev.size === filas.length ? new Set() : new Set(filas.map((e) => e.id))));
+  }
+
   async function confirmarEliminar() {
-    if (!aEliminar || !profile) return;
+    if (idsAEliminar.length === 0 || !profile) return;
     setEliminando(true);
     setErrorEliminar(null);
     // re-valida la contraseña del admin actual antes de borrar (no cambia
@@ -115,7 +139,14 @@ export default function AdminPage() {
       return;
     }
     try {
-      await eliminarEncuesta(aEliminar.id);
+      for (const id of idsAEliminar) {
+        await eliminarEncuesta(id);
+      }
+      setSeleccionadas((prev) => {
+        const nuevo = new Set(prev);
+        for (const id of idsAEliminar) nuevo.delete(id);
+        return nuevo;
+      });
       cancelarEliminar();
       recargar();
     } catch (err) {
@@ -164,6 +195,14 @@ export default function AdminPage() {
           >
             Abrir con...
           </Button>
+          {seleccionadas.size > 0 && (
+            <Button
+              onClick={pedirEliminarSeleccionadas}
+              className="bg-danger px-4 py-2 text-brand-ink hover:bg-danger"
+            >
+              Eliminar seleccionadas ({seleccionadas.size})
+            </Button>
+          )}
         </div>
       </div>
 
@@ -196,16 +235,35 @@ export default function AdminPage() {
           {/* Mobile (< sm): tarjetas -- una tabla de 7 columnas no entra en
               un telefono sin obligar a deslizar hacia los lados para ver
               el resto del contenido. */}
-          <div className="mt-6 flex flex-col gap-3 sm:hidden">
+          <div className="mt-6 sm:hidden">
+            <label className="flex items-center gap-2 px-1 text-sm font-medium text-ink-muted">
+              <input
+                type="checkbox"
+                checked={seleccionadas.size === filas.length}
+                onChange={alternarSeleccionTodas}
+                className="h-4 w-4 rounded border-line-strong"
+              />
+              Seleccionar todas
+            </label>
+          </div>
+          <div className="mt-2 flex flex-col gap-3 sm:hidden">
             {filas.map((e) => {
               const nivel = nivelDe(e);
               const expandido = expandidoId === e.id;
               return (
                 <div key={e.id} className="rounded-xl border border-line bg-surface p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-semibold text-ink">{e.participante}</p>
-                      <p className="text-sm text-ink-muted">{e.encuestador || "-"}</p>
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={seleccionadas.has(e.id)}
+                        onChange={() => alternarSeleccion(e.id)}
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-line-strong"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-ink">{e.participante}</p>
+                        <p className="text-sm text-ink-muted">{e.encuestador || "-"}</p>
+                      </div>
                     </div>
                     <span className="shrink-0 text-lg font-bold text-ink">#{prioridades.get(e.id)}</span>
                   </div>
@@ -243,6 +301,14 @@ export default function AdminPage() {
             <table className="w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-line bg-surface text-sm text-ink-muted">
+                  <th className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={seleccionadas.size === filas.length}
+                      onChange={alternarSeleccionTodas}
+                      className="h-4 w-4 rounded border-line-strong"
+                    />
+                  </th>
                   <th className="px-4 py-3 font-semibold">Prioridad</th>
                   <th className="px-4 py-3 font-semibold">Encuestador</th>
                   <th className="px-4 py-3 font-semibold">Encuestado</th>
@@ -259,6 +325,14 @@ export default function AdminPage() {
                   return (
                     <Fragment key={e.id}>
                       <tr className="border-b border-line last:border-0 hover:bg-surface">
+                        <td className="px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={seleccionadas.has(e.id)}
+                            onChange={() => alternarSeleccion(e.id)}
+                            className="h-4 w-4 rounded border-line-strong"
+                          />
+                        </td>
                         <td className="px-4 py-3 font-semibold text-ink">{prioridades.get(e.id)}</td>
                         <td className="px-4 py-3 text-ink-muted">{e.encuestador || "-"}</td>
                         <td className="px-4 py-3 text-ink">{e.participante}</td>
@@ -284,7 +358,7 @@ export default function AdminPage() {
                       </tr>
                       {expandido && (
                         <tr className="border-b border-line bg-surface">
-                          <td colSpan={7} className="px-4 py-4">
+                          <td colSpan={8} className="px-4 py-4">
                             <DetalleEncuesta encuesta={e} preguntaDe={preguntaDe} />
                           </td>
                         </tr>
@@ -298,7 +372,7 @@ export default function AdminPage() {
         </>
       )}
 
-      {aEliminar && (
+      {idsAEliminar.length > 0 && (
         <div
           role="dialog"
           aria-modal="true"
@@ -307,10 +381,22 @@ export default function AdminPage() {
         >
           <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-6">
             <h2 id="titulo-eliminar" className="text-lg font-semibold text-ink">
-              Eliminar encuesta
+              {idsAEliminar.length === 1 ? "Eliminar encuesta" : `Eliminar ${idsAEliminar.length} encuestas`}
             </h2>
             <p className="mt-2 text-sm text-ink-muted">
-              Vas a eliminar la encuesta de <strong className="text-ink">{aEliminar.participante}</strong>.
+              {idsAEliminar.length === 1 ? (
+                <>
+                  Vas a eliminar la encuesta de{" "}
+                  <strong className="text-ink">
+                    {filas.find((e) => e.id === idsAEliminar[0])?.participante}
+                  </strong>
+                  .
+                </>
+              ) : (
+                <>
+                  Vas a eliminar <strong className="text-ink">{idsAEliminar.length} encuestas</strong> seleccionadas.
+                </>
+              )}{" "}
               Esta accion no se puede deshacer. Confirma tu contraseña de administrador para
               continuar.
             </p>
