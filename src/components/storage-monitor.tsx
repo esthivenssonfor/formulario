@@ -7,10 +7,12 @@ import { supabase } from "@/lib/supabase-client";
 import { URL_WEB } from "@/lib/config";
 import { exportarEncuestasExcel } from "@/lib/export-encuestas";
 
-// Indicador discreto de almacenamiento de la base de datos (solo panel
-// admin). Sondea la ruta server-side /api/admin/storage -- el porcentaje
-// real (pg_database_size) se calcula del lado del servidor con la
-// service_role key, nunca en el navegador.
+// Indicador de almacenamiento de la base de datos, embebido en el panel
+// admin (antes era un globo flotante que solo aparecia una vez cargado el
+// dato -- si la carga fallaba o tardaba, el % directamente no se veia en
+// ningun lado). Sondea la ruta server-side /api/admin/storage -- el
+// porcentaje real (pg_database_size) se calcula del lado del servidor con
+// la service_role key, nunca en el navegador.
 const INTERVALO_SONDEO_MS = 5 * 60 * 1000;
 const CLAVE_DESCARTADOS = "fundimopla_storage_alertas_descartadas";
 
@@ -69,6 +71,7 @@ function leerDescartados(): Set<Nivel> {
 
 export function StorageMonitor() {
   const [datos, setDatos] = useState<DatosAlmacenamiento | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [expandido, setExpandido] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [mensajeExport, setMensajeExport] = useState<string | null>(null);
@@ -79,10 +82,15 @@ export function StorageMonitor() {
     async function sondear() {
       try {
         const res = await fetch(apiUrl("/api/admin/storage"), { headers: await authHeaders() });
-        if (!res.ok || cancelado) return;
+        if (cancelado) return;
+        if (!res.ok) {
+          setError(`No se pudo consultar el almacenamiento (${res.status}).`);
+          return;
+        }
         const body = (await res.json()) as DatosAlmacenamiento;
         if (cancelado) return;
         setDatos(body);
+        setError(null);
         const nivel = nivelDe(body.percent);
         // el nivel critico extremo no se puede silenciar de forma permanente:
         // vuelve a abrirse solo en cada sondeo/carga mientras siga en ese rango.
@@ -90,8 +98,7 @@ export function StorageMonitor() {
           setExpandido(true);
         }
       } catch {
-        // fallo de red al monitorear almacenamiento: no interrumpe la app,
-        // simplemente no se actualiza el indicador hasta el proximo sondeo.
+        if (!cancelado) setError("No se pudo consultar el almacenamiento (sin conexion).");
       }
     }
 
@@ -103,20 +110,16 @@ export function StorageMonitor() {
     };
   }, []);
 
-  if (!datos) return null;
-
-  const nivel = nivelDe(datos.percent);
-  const info = NIVELES.find((n) => n.id === nivel)!;
-  const porcentaje = Math.round(datos.percent * 100);
-  const muestraAcciones = datos.percent >= 0.8;
-
   function cerrar() {
     setExpandido(false);
     setMensajeExport(null);
-    if (nivel !== "critico_extremo" && typeof window !== "undefined") {
-      const descartados = leerDescartados();
-      descartados.add(nivel);
-      sessionStorage.setItem(CLAVE_DESCARTADOS, JSON.stringify([...descartados]));
+    if (datos) {
+      const nivel = nivelDe(datos.percent);
+      if (nivel !== "critico_extremo" && typeof window !== "undefined") {
+        const descartados = leerDescartados();
+        descartados.add(nivel);
+        sessionStorage.setItem(CLAVE_DESCARTADOS, JSON.stringify([...descartados]));
+      }
     }
   }
 
@@ -137,8 +140,38 @@ export function StorageMonitor() {
     }
   }
 
+  if (error && !datos) {
+    return (
+      <div className="rounded-xl border border-line bg-surface px-3 py-1.5 text-sm text-ink-muted">
+        {error}
+      </div>
+    );
+  }
+
+  if (!datos) {
+    return (
+      <div className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-muted">
+        Base de datos: cargando...
+      </div>
+    );
+  }
+
+  const nivel = nivelDe(datos.percent);
+  const info = NIVELES.find((n) => n.id === nivel)!;
+  const porcentaje = Math.round(datos.percent * 100);
+  const muestraAcciones = datos.percent >= 0.8;
+
   return (
-    <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2">
+    <div className="flex flex-col items-end gap-2">
+      <button
+        onClick={() => setExpandido((v) => !v)}
+        aria-expanded={expandido}
+        className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+      >
+        <span aria-hidden="true">{info.emoji}</span>
+        Base de datos: {porcentaje}%
+      </button>
+
       {expandido && (
         <div className="w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-line bg-surface p-4 shadow-lg">
           <div className="flex items-start justify-between gap-3">
@@ -195,15 +228,6 @@ export function StorageMonitor() {
           )}
         </div>
       )}
-
-      <button
-        onClick={() => setExpandido((v) => !v)}
-        aria-expanded={expandido}
-        className="flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-md hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-      >
-        <span aria-hidden="true">{info.emoji}</span>
-        Base de datos: {porcentaje}%
-      </button>
     </div>
   );
 }

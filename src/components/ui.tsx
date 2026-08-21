@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 
 type Variant = "primary" | "secondary" | "ghost";
@@ -28,6 +29,59 @@ export function TextInput({ className = "", ...props }: InputHTMLAttributes<HTML
       className={`rounded-lg border border-line-strong bg-surface px-4 py-3 text-base text-ink transition-colors duration-150 placeholder:text-ink-muted focus-visible:border-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand ${className}`}
       {...props}
     />
+  );
+}
+
+/** TextInput con boton de ojo para mostrar/ocultar el valor -- mismo
+ * patron que ya usaba el login, ahora compartido (ej. confirmar
+ * contraseña al eliminar encuestas). */
+export function PasswordInput({
+  className = "",
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  const [mostrar, setMostrar] = useState(false);
+  return (
+    <div className="relative">
+      <TextInput type={mostrar ? "text" : "password"} className={`pr-11 ${className}`} {...props} />
+      <button
+        type="button"
+        onClick={() => setMostrar((v) => !v)}
+        className="absolute inset-y-0 right-0 flex items-center px-3 text-ink-muted hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand"
+        aria-label={mostrar ? "Ocultar contraseña" : "Mostrar contraseña"}
+      >
+        {mostrar ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-5 w-5"
+            aria-hidden="true"
+          >
+            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.44M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+            <line x1="1" y1="1" x2="23" y2="23" />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-5 w-5"
+            aria-hidden="true"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        )}
+      </button>
+    </div>
   );
 }
 

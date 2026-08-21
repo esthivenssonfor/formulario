@@ -9,8 +9,9 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase-client";
 import { emailInternoDeUsuario } from "@/lib/config";
 import type { Configuracion, Encuesta } from "@/lib/types";
-import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
+import { Alert, Button, NivelBadge, PasswordInput } from "@/components/ui";
 import { DetalleEncuesta } from "@/components/detalle-encuesta";
+import { StorageMonitor } from "@/components/storage-monitor";
 
 export default function AdminPage() {
   const { profile } = useAuth();
@@ -166,11 +167,14 @@ export default function AdminPage() {
 
   return (
     <main id="contenido" className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
-      <Link href="/">
-        <Button variant="ghost" className="border border-line px-3 py-1.5 text-sm">
-          ← Atras
-        </Button>
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link href="/">
+          <Button variant="ghost" className="border border-line px-3 py-1.5 text-sm">
+            ← Atras
+          </Button>
+        </Link>
+        <StorageMonitor />
+      </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight text-ink">Encuestas</h1>
@@ -402,8 +406,7 @@ export default function AdminPage() {
             </p>
             <label className="mt-4 flex flex-col gap-1.5">
               <span className="font-medium text-ink">Tu contraseña</span>
-              <TextInput
-                type="password"
+              <PasswordInput
                 value={passwordConfirmar}
                 onChange={(e) => setPasswordConfirmar(e.target.value)}
                 autoComplete="current-password"

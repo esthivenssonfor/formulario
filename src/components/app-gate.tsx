@@ -6,7 +6,6 @@ import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui";
 import { UserMenu } from "@/components/user-menu";
-import { StorageMonitor } from "@/components/storage-monitor";
 
 /** Exige sesion iniciada para TODA la app (solo /login queda afuera). */
 function Gate({ children }: { children: React.ReactNode }) {
@@ -60,7 +59,6 @@ function Gate({ children }: { children: React.ReactNode }) {
         }
       />
       {children}
-      {esAdmin && <StorageMonitor />}
     </>
   );
 }
