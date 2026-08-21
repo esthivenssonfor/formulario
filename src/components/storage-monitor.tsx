@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Capacitor } from "@capacitor/core";
-import { supabase } from "@/lib/supabase-client";
+import { obtenerTokenValido } from "@/lib/supabase-client";
 import { URL_WEB } from "@/lib/config";
 import { exportarEncuestasExcel } from "@/lib/export-encuestas";
 
@@ -50,8 +50,7 @@ function apiUrl(path: string): string {
 }
 
 async function authHeaders(): Promise<HeadersInit> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const token = await obtenerTokenValido();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 

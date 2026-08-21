@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import { supabase } from "./supabase-client";
+import { obtenerTokenValido } from "./supabase-client";
 import { URL_WEB } from "./config";
 import type { Profile, Rol } from "./types";
 
@@ -11,8 +11,7 @@ function apiUrl(path: string): string {
 }
 
 async function authHeaders(): Promise<HeadersInit> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const token = await obtenerTokenValido();
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
