@@ -12,7 +12,7 @@ import {
 } from "@/lib/admin-users-client";
 import { usernameValido } from "@/lib/config";
 import type { Profile, Rol } from "@/lib/types";
-import { Alert, Button, TextInput } from "@/components/ui";
+import { Alert, Button, PasswordInput, TextInput } from "@/components/ui";
 
 function generarPasswordInicial(): string {
   const alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#";
@@ -48,6 +48,16 @@ function UsuariosContenido() {
   const [editandoEmailId, setEditandoEmailId] = useState<string | null>(null);
   const [emailEditado, setEmailEditado] = useState("");
   const [guardandoEmail, setGuardandoEmail] = useState(false);
+
+  // Cambiar contraseña: antes generaba una al azar y solo se mostraba una
+  // vez en un mensaje -- si no se copiaba a tiempo, la cuenta quedaba
+  // inaccesible (ya paso). Ahora se pide escribirla dos veces, como
+  // cualquier formulario de contraseña.
+  const [cambiandoPasswordUsuario, setCambiandoPasswordUsuario] = useState<Profile | null>(null);
+  const [nuevaPassword, setNuevaPassword] = useState("");
+  const [repetirPassword, setRepetirPassword] = useState("");
+  const [errorPassword, setErrorPassword] = useState<string | null>(null);
+  const [guardandoPassword, setGuardandoPassword] = useState(false);
 
   function cargar() {
     listarUsuarios()
@@ -106,18 +116,40 @@ function UsuariosContenido() {
     }
   }
 
-  async function restablecerPassword(u: Profile) {
-    if (!confirm(`Cambiar la contraseña de "${u.username}" por una nueva?`)) return;
-    setMensaje(null);
-    const nueva = generarPasswordInicial();
+  function abrirCambiarPassword(u: Profile) {
+    setCambiandoPasswordUsuario(u);
+    setNuevaPassword("");
+    setRepetirPassword("");
+    setErrorPassword(null);
+  }
+
+  function cerrarCambiarPassword() {
+    setCambiandoPasswordUsuario(null);
+    setNuevaPassword("");
+    setRepetirPassword("");
+    setErrorPassword(null);
+  }
+
+  async function confirmarCambiarPassword() {
+    if (!cambiandoPasswordUsuario) return;
+    if (nuevaPassword.length < 8) {
+      setErrorPassword("La contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+    if (nuevaPassword !== repetirPassword) {
+      setErrorPassword("Las contraseñas no coinciden.");
+      return;
+    }
+    setGuardandoPassword(true);
+    setErrorPassword(null);
     try {
-      await actualizarUsuario(u.id, { password: nueva });
-      setMensaje({
-        tipo: "ok",
-        texto: `Contraseña de "${u.username}" cambiada a: ${nueva} -- compartila por un canal seguro.`,
-      });
+      await actualizarUsuario(cambiandoPasswordUsuario.id, { password: nuevaPassword });
+      setMensaje({ tipo: "ok", texto: `Contraseña de "${cambiandoPasswordUsuario.username}" cambiada correctamente.` });
+      cerrarCambiarPassword();
     } catch (err) {
-      setMensaje({ tipo: "error", texto: err instanceof Error ? err.message : "Error." });
+      setErrorPassword(err instanceof Error ? err.message : "Error al cambiar la contraseña.");
+    } finally {
+      setGuardandoPassword(false);
     }
   }
 
@@ -356,7 +388,7 @@ function UsuariosContenido() {
 
                     <div className="mt-3 flex gap-4">
                       <button
-                        onClick={() => restablecerPassword(u)}
+                        onClick={() => abrirCambiarPassword(u)}
                         className="text-sm font-medium text-brand underline underline-offset-2"
                       >
                         Cambiar contraseña
@@ -455,7 +487,7 @@ function UsuariosContenido() {
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
                         <button
-                          onClick={() => restablecerPassword(u)}
+                          onClick={() => abrirCambiarPassword(u)}
                           className="mr-4 font-medium text-brand underline underline-offset-2"
                         >
                           Cambiar contraseña
@@ -477,6 +509,57 @@ function UsuariosContenido() {
           </>
         )}
       </section>
+
+      {cambiandoPasswordUsuario && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="titulo-cambiar-password"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        >
+          <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-6">
+            <h2 id="titulo-cambiar-password" className="text-lg font-semibold text-ink">
+              Cambiar contraseña
+            </h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              Nueva contraseña para <strong className="text-ink">{cambiandoPasswordUsuario.username}</strong>.
+            </p>
+            <label className="mt-4 flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Nueva contraseña</span>
+              <PasswordInput
+                value={nuevaPassword}
+                onChange={(e) => setNuevaPassword(e.target.value)}
+                autoComplete="new-password"
+                autoFocus
+              />
+            </label>
+            <label className="mt-4 flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Repite la contraseña</span>
+              <PasswordInput
+                value={repetirPassword}
+                onChange={(e) => setRepetirPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </label>
+            {errorPassword && (
+              <div className="mt-3">
+                <Alert tono="error">{errorPassword}</Alert>
+              </div>
+            )}
+            <div className="mt-5 flex justify-end gap-3">
+              <Button variant="ghost" onClick={cerrarCambiarPassword} disabled={guardandoPassword}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={confirmarCambiarPassword}
+                disabled={guardandoPassword || !nuevaPassword || !repetirPassword}
+              >
+                {guardandoPassword ? "Guardando..." : "Cambiar contraseña"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
