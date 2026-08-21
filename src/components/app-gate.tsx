@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui";
 import { UserMenu } from "@/components/user-menu";
+import { programarRecordatorioInactividad } from "@/lib/recordatorio-inactividad";
 
 /** Exige sesion iniciada para TODA la app (solo /login queda afuera). */
 function Gate({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,13 @@ function Gate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!esLogin && session === null) router.replace("/login");
   }, [esLogin, session, router]);
+
+  // Abrir la app con sesion activa ya cuenta como actividad real contra
+  // Supabase (todas las pantallas hacen consultas) -- se aprovecha para
+  // reprogramar el aviso de "la base de datos esta por pausarse".
+  useEffect(() => {
+    if (session) programarRecordatorioInactividad();
+  }, [session]);
 
   if (esLogin) return <>{children}</>;
 
