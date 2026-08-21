@@ -180,9 +180,9 @@ function UsuariosContenido() {
         </div>
       )}
 
-      <section className="mt-8 rounded-xl border border-line bg-surface p-6">
+      <section className="mx-auto mt-8 max-w-lg rounded-xl border border-line bg-surface p-6">
         <h2 className="text-lg font-semibold text-ink">Crear nuevo usuario</h2>
-        <form onSubmit={onCrear} className="mt-4 grid gap-4 sm:grid-cols-2">
+        <form onSubmit={onCrear} className="mt-4 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
             <span className="font-medium text-ink">
               Nombre <span className="text-danger" aria-hidden="true">*</span>
@@ -260,10 +260,11 @@ function UsuariosContenido() {
               <option value="admin">Administrador</option>
             </select>
           </label>
-          <div className="sm:col-span-2">
+          <div>
             <Button
               type="submit"
               disabled={creando || !nombre || !usernameEsValido || !username || password.length < 8}
+              className="w-full"
             >
               {creando ? "Creando..." : "Crear usuario"}
             </Button>
