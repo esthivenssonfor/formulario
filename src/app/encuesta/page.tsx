@@ -14,6 +14,10 @@ import {
   preguntasVisibles,
 } from "@/lib/scoring";
 import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
+import { PhotoCaptureField } from "@/components/photo-capture-field";
+import { cedulaValida, formatearCedula } from "@/lib/cedula";
+import { subirFotoIdentificacion } from "@/lib/identificacion";
+import type { TipoFoto } from "@/lib/image-processor";
 
 // Un "unica" con muchas opciones se muestra como <select> (menu) en vez de
 // radios largos -- mejor UX para listas como nacionalidad.
@@ -22,8 +26,11 @@ const UMBRAL_MENU_DESPLEGABLE = 5;
 // Cuando la opcion elegida es literalmente "Otra", se pide especificar en
 // texto libre (aplica a cualquier pregunta unica/multiple, no solo
 // nacionalidad).
+// "otra/otro/otros/otras" -- antes solo reconocia el femenino exacto
+// ("otra"), asi que preguntas con la opcion en masculino ("Otro") no
+// mostraban el campo para especificar.
 function esOtraSeleccionada(pregunta: { opciones: { id: string; texto: string }[] }, ids: string[]): boolean {
-  return pregunta.opciones.some((o) => ids.includes(o.id) && o.texto.trim().toLowerCase() === "otra");
+  return pregunta.opciones.some((o) => ids.includes(o.id) && /^otr[oa]s?$/i.test(o.texto.trim()));
 }
 
 // El nombre y la edad del encuestado ya se piden dentro de la encuesta
@@ -100,6 +107,13 @@ function EncuestaContenido() {
   const [enviando, setEnviando] = useState(false);
   const [sincronizada, setSincronizada] = useState(true);
 
+  // Identificacion del participante: cedula + 3 fotos, section fija (no
+  // forma parte del motor de preguntas configurables) -- espejo de
+  // flutter/lib/screens/encuesta_screen.dart.
+  const [cedula, setCedula] = useState("");
+  const [fotos, setFotos] = useState<Partial<Record<TipoFoto, Blob>>>({});
+  const [errorFotos, setErrorFotos] = useState<string | null>(null);
+
   // El encuestador es quien inicio sesion -- no se pide ni se elige.
   const encuestador = profile?.nombre || profile?.username || "";
 
@@ -124,7 +138,16 @@ function EncuestaContenido() {
   // preguntas (q_discapacidad_detalle) la cubre como texto libre. Se
   // muestran todas las preguntas (ninguna real usa el filtro por
   // discapacidad hoy).
-  const preguntas = useMemo(() => (config ? preguntasVisibles(config.preguntas, "") : []), [config]);
+  const preguntas = useMemo(
+    () =>
+      config
+        ? // q_cedula queda excluida: la cedula ahora se pide una sola vez en
+          // "Identificacion del participante" (ver mas abajo), no hace
+          // falta preguntarla dos veces.
+          preguntasVisibles(config.preguntas, "").filter((p) => p.id !== "q_cedula")
+        : [],
+    [config]
+  );
 
   const preguntasDeSeleccion = useMemo(
     () => preguntas.filter((p) => p.tipo === "unica" || p.tipo === "multiple"),
@@ -146,13 +169,29 @@ function EncuestaContenido() {
     });
   }
 
+  // Lleva al usuario directo al campo/pregunta que falta en vez de solo
+  // avisar con un mensaje generico -- con 50+ preguntas, "responde todo"
+  // sin decir donde obliga a buscarla a mano.
+  function irAElemento(id: string) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.querySelector<HTMLElement>("input, textarea, select")?.focus();
+  }
+
   async function finalizar() {
     if (!config) return;
+    if (!cedulaValida(cedula)) {
+      setError("La cedula debe tener el formato 000-0000000-0.");
+      irAElemento("campo-cedula");
+      return;
+    }
     const faltantes = preguntas.filter(
       (p) => (p.tipo === "unica" || p.tipo === "multiple") && !(seleccion[p.id]?.length)
     );
     if (faltantes.length > 0) {
-      setError("Responde todas las preguntas de seleccion antes de continuar.");
+      setError(`Falta responder: "${faltantes[0].texto}"`);
+      irAElemento(`pregunta-${faltantes[0].id}`);
       return;
     }
     setError(null);
@@ -184,6 +223,7 @@ function EncuestaContenido() {
       participante: valorDe(respuestas, "q_nombre") || "(sin nombre)",
       edad: edadTexto ? Number(edadTexto) : null,
       discapacidad: null,
+      cedula,
       fecha: new Date().toISOString(),
       respuestas,
       puntajeTotal,
@@ -193,8 +233,26 @@ function EncuestaContenido() {
     };
 
     const { sincronizada: yaEnviada } = await guardarEncuestaConCola(encuesta);
-    setSincronizada(yaEnviada);
+
+    // Las fotos solo se suben si la encuesta ya quedo online (a diferencia
+    // del cliente Flutter, esta cola offline solo guarda el JSON de la
+    // encuesta -- ver src/lib/offline-queue.ts -- no hay reintento
+    // diferido de fotos todavia). Si falla, no bloquea la confirmacion:
+    // el texto/respuestas ya estan a salvo.
+    if (yaEnviada) {
+      const subidas = (Object.entries(fotos) as [TipoFoto, Blob][]).map(([tipo, blob]) =>
+        subirFotoIdentificacion(encuesta.id, tipo, blob)
+      );
+      const resultados = await Promise.allSettled(subidas);
+      if (resultados.some((r) => r.status === "rejected")) {
+        setErrorFotos("La encuesta se guardo, pero alguna foto no se pudo subir. Reintenta desde el panel admin.");
+      }
+    } else if (Object.keys(fotos).length > 0) {
+      setErrorFotos("Sin conexion: la encuesta se guardo, pero las fotos no se subieron. Volve a tomarlas cuando sincronices.");
+    }
+
     setEnviando(false);
+    setSincronizada(yaEnviada);
     setResultado(encuesta);
     irAPaso("resultado");
   }
@@ -261,12 +319,45 @@ function EncuestaContenido() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col gap-10">
+          <div className="mt-6 flex flex-col gap-4">
+            <h2 className="text-lg font-bold tracking-tight text-brand">Identificación del participante</h2>
+            <label id="campo-cedula" className="flex flex-col gap-1.5">
+              <span className="font-medium text-ink">Cédula</span>
+              <TextInput
+                value={cedula}
+                onChange={(e) => setCedula(formatearCedula(e.target.value))}
+                placeholder="000-0000000-0"
+                inputMode="numeric"
+                className="w-full"
+              />
+              <span className="text-xs text-ink-muted">Formato dominicano: 11 dígitos</span>
+            </label>
+            <PhotoCaptureField
+              etiqueta="📷 Cédula frontal"
+              guia="Coloca la cédula dentro del encuadre y asegúrate de que el texto sea legible."
+              tipo="cedula_frontal"
+              onConfirmada={(blob) => setFotos((f) => ({ ...f, cedula_frontal: blob }))}
+            />
+            <PhotoCaptureField
+              etiqueta="📷 Cédula posterior"
+              guia="Coloca la cédula dentro del encuadre y asegúrate de que el texto sea legible."
+              tipo="cedula_posterior"
+              onConfirmada={(blob) => setFotos((f) => ({ ...f, cedula_posterior: blob }))}
+            />
+            <PhotoCaptureField
+              etiqueta="📷 Foto del participante"
+              guia="Foto de la persona que está realizando la encuesta, rostro visible."
+              tipo="foto_participante"
+              onConfirmada={(blob) => setFotos((f) => ({ ...f, foto_participante: blob }))}
+            />
+          </div>
+
+          <div className="mt-10 flex flex-col gap-10">
             {preguntas.map((p, idx) => {
               const nuevaSeccion = p.seccion !== preguntas[idx - 1]?.seccion;
               const comoMenu = p.tipo === "unica" && p.opciones.length >= UMBRAL_MENU_DESPLEGABLE;
               return (
-                <div key={p.id}>
+                <div key={p.id} id={`pregunta-${p.id}`}>
                   {nuevaSeccion && (
                     <h2 className="mb-4 border-b border-line pb-2 text-lg font-bold tracking-tight text-brand">
                       {p.seccion}
@@ -386,6 +477,11 @@ function EncuestaContenido() {
               </Alert>
             )}
           </div>
+          {errorFotos && (
+            <div className="mt-3">
+              <Alert tono="info">{errorFotos}</Alert>
+            </div>
+          )}
           <Link
             href="/"
             className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-lg font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"

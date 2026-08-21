@@ -64,14 +64,24 @@ export function UserMenu({
             </p>
           </div>
           {esAdmin && (
-            <Link
-              href="/admin/usuarios"
-              role="menuitem"
-              onClick={() => setAbierto(false)}
-              className="block px-4 py-2.5 text-sm font-medium text-ink hover:bg-surface-2"
-            >
-              Gestionar usuarios
-            </Link>
+            <>
+              <Link
+                href="/admin"
+                role="menuitem"
+                onClick={() => setAbierto(false)}
+                className="block px-4 py-2.5 text-sm font-medium text-ink hover:bg-surface-2"
+              >
+                Panel administrativo
+              </Link>
+              <Link
+                href="/admin/usuarios"
+                role="menuitem"
+                onClick={() => setAbierto(false)}
+                className="block px-4 py-2.5 text-sm font-medium text-ink hover:bg-surface-2"
+              >
+                Gestionar usuarios
+              </Link>
+            </>
           )}
           <button
             role="menuitem"

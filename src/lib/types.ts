@@ -93,6 +93,10 @@ export interface Encuesta {
   // ya no se elige en un paso aparte -- la seccion II de preguntas
   // (q_discapacidad_detalle) ya cubre este dato como texto libre.
   discapacidad: string | null;
+  // formato dominicano 000-0000000-0. Las fotos (cedula frontal/posterior,
+  // foto del participante) NO viven aca -- se suben aparte a Supabase
+  // Storage y se registran en encuesta_fotos (ver src/lib/identificacion.ts).
+  cedula: string | null;
   fecha: string; // ISO
   respuestas: RespuestaPregunta[];
   puntajeTotal: number;

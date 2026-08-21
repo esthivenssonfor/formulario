@@ -2,14 +2,15 @@
 
 import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import * as XLSX from "xlsx";
 import { obtenerConfiguracion, listarEncuestas, eliminarEncuesta } from "@/lib/storage";
+import { exportarEncuestasExcel, abrirEncuestasExcel } from "@/lib/export-encuestas";
 import { calcularPrioridades } from "@/lib/scoring";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase-client";
 import { emailInternoDeUsuario } from "@/lib/config";
 import type { Configuracion, Encuesta } from "@/lib/types";
 import { Alert, Button, NivelBadge, TextInput } from "@/components/ui";
+import { DetalleEncuesta } from "@/components/detalle-encuesta";
 
 export default function AdminPage() {
   const { profile } = useAuth();
@@ -22,6 +23,9 @@ export default function AdminPage() {
   const [passwordConfirmar, setPasswordConfirmar] = useState("");
   const [eliminando, setEliminando] = useState(false);
   const [errorEliminar, setErrorEliminar] = useState<string | null>(null);
+
+  const [exportando, setExportando] = useState(false);
+  const [errorExportar, setErrorExportar] = useState<string | null>(null);
 
   useEffect(() => {
     obtenerConfiguracion().then(setConfig);
@@ -55,23 +59,28 @@ export default function AdminPage() {
     return e.respuestas.find((r) => r.preguntaId === "q_discapacidad_detalle")?.valorTexto || "-";
   }
 
-  function exportarExcel() {
-    if (!config) return;
-    const filasExcel = filas.map((e) => ({
-      Prioridad: prioridades.get(e.id),
-      Encuestador: e.encuestador,
-      Encuestado: e.participante,
-      Edad: e.edad ?? "",
-      Discapacidad: discapacidadDe(e),
-      Puntaje: e.puntajeTotal,
-      Nivel: nivelDe(e)?.nombre ?? "",
-      "Factores criticos": e.factoresCriticos.join("; "),
-      Fecha: new Date(e.fecha).toLocaleString("es"),
-    }));
-    const hoja = XLSX.utils.json_to_sheet(filasExcel);
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, "Encuestas");
-    XLSX.writeFile(libro, "encuestas_vulnerabilidad.xlsx");
+  async function exportarExcel() {
+    setExportando(true);
+    setErrorExportar(null);
+    try {
+      await exportarEncuestasExcel();
+    } catch (err) {
+      setErrorExportar(err instanceof Error ? err.message : "No se pudo exportar.");
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  async function abrirExcel() {
+    setExportando(true);
+    setErrorExportar(null);
+    try {
+      await abrirEncuestasExcel();
+    } catch (err) {
+      setErrorExportar(err instanceof Error ? err.message : "No se pudo abrir el archivo.");
+    } finally {
+      setExportando(false);
+    }
   }
 
   function recargar() {
@@ -144,11 +153,25 @@ export default function AdminPage() {
           <Button variant="ghost" onClick={recargar} className="border border-line">
             Recargar
           </Button>
-          <Button onClick={exportarExcel} disabled={filas.length === 0} className="px-4 py-2">
-            Exportar Excel
+          <Button onClick={exportarExcel} disabled={filas.length === 0 || exportando} className="px-4 py-2">
+            {exportando ? "Exportando..." : "Compartir Excel"}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={abrirExcel}
+            disabled={filas.length === 0 || exportando}
+            className="px-4 py-2"
+          >
+            Abrir con...
           </Button>
         </div>
       </div>
+
+      {errorExportar && (
+        <div className="mt-4">
+          <Alert tono="error">{errorExportar}</Alert>
+        </div>
+      )}
 
       <p className="mt-2 text-sm text-ink-muted">
         Orden segun direccion configurada:{" "}
@@ -169,83 +192,110 @@ export default function AdminPage() {
           .
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-xl border border-line">
-          <table className="w-full border-collapse text-left">
-            <thead>
-              <tr className="border-b border-line bg-surface text-sm text-ink-muted">
-                <th className="px-4 py-3 font-semibold">Prioridad</th>
-                <th className="px-4 py-3 font-semibold">Encuestador</th>
-                <th className="px-4 py-3 font-semibold">Encuestado</th>
-                <th className="px-4 py-3 font-semibold">Discapacidad</th>
-                <th className="px-4 py-3 font-semibold">Puntaje</th>
-                <th className="px-4 py-3 font-semibold">Nivel</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {filas.map((e) => {
-                const nivel = nivelDe(e);
-                const expandido = expandidoId === e.id;
-                return (
-                  <Fragment key={e.id}>
-                    <tr className="border-b border-line last:border-0 hover:bg-surface">
-                      <td className="px-4 py-3 font-semibold text-ink">{prioridades.get(e.id)}</td>
-                      <td className="px-4 py-3 text-ink-muted">{e.encuestador || "-"}</td>
-                      <td className="px-4 py-3 text-ink">{e.participante}</td>
-                      <td className="px-4 py-3 text-ink-muted">{discapacidadDe(e)}</td>
-                      <td className="px-4 py-3 text-ink">{e.puntajeTotal}</td>
-                      <td className="px-4 py-3">
-                        {nivel && <NivelBadge tono={nivel.id}>{nivel.nombre}</NivelBadge>}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <button
-                          onClick={() => setExpandidoId(expandido ? null : e.id)}
-                          className="mr-4 font-medium text-brand underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-                        >
-                          {expandido ? "Ocultar" : "Ver detalle"}
-                        </button>
-                        <button
-                          onClick={() => pedirEliminar(e)}
-                          className="font-medium text-danger underline underline-offset-2"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                    {expandido && (
-                      <tr className="border-b border-line bg-surface">
-                        <td colSpan={7} className="px-4 py-4">
-                          {e.factoresCriticos.length > 0 && (
-                            <div className="mb-3 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
-                              <strong>Factores criticos:</strong> {e.factoresCriticos.join("; ")}
-                            </div>
-                          )}
-                          <ul className="flex flex-col gap-2 text-sm">
-                            {e.respuestas.map((r) => {
-                              const pregunta = preguntaDe(r.preguntaId);
-                              const opciones = pregunta?.opciones
-                                .filter((o) => r.opcionIds.includes(o.id))
-                                .map((o) => o.texto)
-                                .join(", ");
-                              const valor = opciones || r.valorTexto || "-";
-                              return (
-                                <li key={r.preguntaId} className="text-ink-muted">
-                                  <strong className="text-ink">{pregunta?.texto}</strong> →{" "}
-                                  {valor}
-                                  {r.puntos > 0 && ` (${r.puntos} pts)`}
-                                </li>
-                              );
-                            })}
-                          </ul>
+        <>
+          {/* Mobile (< sm): tarjetas -- una tabla de 7 columnas no entra en
+              un telefono sin obligar a deslizar hacia los lados para ver
+              el resto del contenido. */}
+          <div className="mt-6 flex flex-col gap-3 sm:hidden">
+            {filas.map((e) => {
+              const nivel = nivelDe(e);
+              const expandido = expandidoId === e.id;
+              return (
+                <div key={e.id} className="rounded-xl border border-line bg-surface p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-ink">{e.participante}</p>
+                      <p className="text-sm text-ink-muted">{e.encuestador || "-"}</p>
+                    </div>
+                    <span className="shrink-0 text-lg font-bold text-ink">#{prioridades.get(e.id)}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-ink-muted">{discapacidadDe(e)}</p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {nivel && <NivelBadge tono={nivel.id}>{nivel.nombre}</NivelBadge>}
+                    <span className="text-sm text-ink">Puntaje: {e.puntajeTotal}</span>
+                  </div>
+                  <div className="mt-3 flex gap-4">
+                    <button
+                      onClick={() => setExpandidoId(expandido ? null : e.id)}
+                      className="text-sm font-medium text-brand underline underline-offset-2"
+                    >
+                      {expandido ? "Ocultar" : "Ver detalle"}
+                    </button>
+                    <button
+                      onClick={() => pedirEliminar(e)}
+                      className="text-sm font-medium text-danger underline underline-offset-2"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                  {expandido && (
+                    <div className="mt-3 border-t border-line pt-3">
+                      <DetalleEncuesta encuesta={e} preguntaDe={preguntaDe} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop/tablet (>= sm): tabla completa. */}
+          <div className="mt-6 hidden overflow-x-auto rounded-xl border border-line sm:block">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-line bg-surface text-sm text-ink-muted">
+                  <th className="px-4 py-3 font-semibold">Prioridad</th>
+                  <th className="px-4 py-3 font-semibold">Encuestador</th>
+                  <th className="px-4 py-3 font-semibold">Encuestado</th>
+                  <th className="px-4 py-3 font-semibold">Discapacidad</th>
+                  <th className="px-4 py-3 font-semibold">Puntaje</th>
+                  <th className="px-4 py-3 font-semibold">Nivel</th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {filas.map((e) => {
+                  const nivel = nivelDe(e);
+                  const expandido = expandidoId === e.id;
+                  return (
+                    <Fragment key={e.id}>
+                      <tr className="border-b border-line last:border-0 hover:bg-surface">
+                        <td className="px-4 py-3 font-semibold text-ink">{prioridades.get(e.id)}</td>
+                        <td className="px-4 py-3 text-ink-muted">{e.encuestador || "-"}</td>
+                        <td className="px-4 py-3 text-ink">{e.participante}</td>
+                        <td className="px-4 py-3 text-ink-muted">{discapacidadDe(e)}</td>
+                        <td className="px-4 py-3 text-ink">{e.puntajeTotal}</td>
+                        <td className="px-4 py-3">
+                          {nivel && <NivelBadge tono={nivel.id}>{nivel.nombre}</NivelBadge>}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right">
+                          <button
+                            onClick={() => setExpandidoId(expandido ? null : e.id)}
+                            className="mr-4 font-medium text-brand underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                          >
+                            {expandido ? "Ocultar" : "Ver detalle"}
+                          </button>
+                          <button
+                            onClick={() => pedirEliminar(e)}
+                            className="font-medium text-danger underline underline-offset-2"
+                          >
+                            Eliminar
+                          </button>
                         </td>
                       </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      {expandido && (
+                        <tr className="border-b border-line bg-surface">
+                          <td colSpan={7} className="px-4 py-4">
+                            <DetalleEncuesta encuesta={e} preguntaDe={preguntaDe} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {aEliminar && (

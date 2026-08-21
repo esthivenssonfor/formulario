@@ -1,0 +1,83 @@
+diff --git a/node_modules/@capacitor/share/android/src/main/java/com/capacitorjs/plugins/share/SharePlugin.java b/node_modules/@capacitor/share/android/src/main/java/com/capacitorjs/plugins/share/SharePlugin.java
+index dcfa338..d9c47a0 100644
+--- a/node_modules/@capacitor/share/android/src/main/java/com/capacitorjs/plugins/share/SharePlugin.java
++++ b/node_modules/@capacitor/share/android/src/main/java/com/capacitorjs/plugins/share/SharePlugin.java
+@@ -73,6 +73,42 @@ public class SharePlugin extends Plugin {
+         call.resolve(callResult);
+     }
+ 
++    // Metodo agregado (no existe en @capacitor/share original, ver
++    // patches/@capacitor+share+8.0.1.patch): "compartir" (ACTION_SEND) es
++    // para MANDAR el archivo a otra app (WhatsApp, Gmail...). Esto es
++    // "abrir con" (ACTION_VIEW + chooser) -- el usuario elige con que app
++    // VER el archivo el mismo (Sheets, Excel, WPS, etc.), sin depender del
++    // visor interno de la app que lo recibio.
++    @PluginMethod
++    public void openFile(PluginCall call) {
++        String file = call.getString("path");
++        if (file == null || !isFileUrl(file)) {
++            call.reject("Se requiere un path de archivo (file://...)");
++            return;
++        }
++        try {
++            String type = getMimeType(file);
++            if (type == null) type = "*/*";
++
++            Uri fileUri = FileProvider.getUriForFile(
++                getActivity(),
++                getContext().getPackageName() + ".fileprovider",
++                new File(Uri.parse(file).getPath())
++            );
++
++            Intent intent = new Intent(Intent.ACTION_VIEW);
++            intent.setDataAndType(fileUri, type);
++            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
++
++            Intent chooser = Intent.createChooser(intent, call.getString("dialogTitle", "Abrir con"));
++            chooser.addCategory(Intent.CATEGORY_DEFAULT);
++            getContext().startActivity(chooser);
++            call.resolve();
++        } catch (Exception ex) {
++            call.reject(ex.getLocalizedMessage());
++        }
++    }
++
+     @PluginMethod
+     public void share(PluginCall call) {
+         if (!isPresenting) {
+@@ -191,13 +227,32 @@ public class SharePlugin extends Plugin {
+         stopped = true;
+     }
+ 
++    // Parche: android.webkit.MimeTypeMap (la tabla de MIME types del propio
++    // SO) no incluye ".xlsx"/".docx"/".pptx"/etc en muchas versiones de
++    // Android -- ahi caia a "*/*", y con MIME generico WhatsApp recibe el
++    // archivo pero no lo trata como un documento real (llega "vacio" del
++    // lado del receptor aunque los bytes que se mandaron eran correctos).
++    // Se resuelve el MIME de Office/Office-XML nosotros mismos ANTES de
++    // preguntarle al sistema.
++    private static final java.util.Map<String, String> MIME_CONOCIDOS_EXTRA = new java.util.HashMap<>();
++    static {
++        MIME_CONOCIDOS_EXTRA.put("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
++        MIME_CONOCIDOS_EXTRA.put("xls", "application/vnd.ms-excel");
++        MIME_CONOCIDOS_EXTRA.put("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
++        MIME_CONOCIDOS_EXTRA.put("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
++        MIME_CONOCIDOS_EXTRA.put("csv", "text/csv");
++    }
++
+     private String getMimeType(String url) {
+-        String type = null;
+         String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+         if (extension != null) {
+-            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
++            String extensionLower = extension.toLowerCase(java.util.Locale.ROOT);
++            if (MIME_CONOCIDOS_EXTRA.containsKey(extensionLower)) {
++                return MIME_CONOCIDOS_EXTRA.get(extensionLower);
++            }
++            return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+         }
+-        return type;
++        return null;
+     }
+ 
+     private boolean isFileUrl(String url) {

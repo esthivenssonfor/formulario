@@ -9,6 +9,12 @@ import type { Configuracion, Encuesta, Pregunta, RespuestaPregunta } from "./typ
 
 const CLAVE_CACHE_CONFIG = "fundimopla_config_cache";
 
+// PostgREST (la API REST de Supabase) corta cada consulta en un maximo de
+// filas por defecto -- sin paginar, una tabla que crezca mas alla de eso
+// perderia registros en silencio (ej. al exportar a Excel). Se pide de a
+// TAMANO_PAGINA hasta que una pagina vuelva incompleta.
+const TAMANO_PAGINA = 1000;
+
 /**
  * Trae la configuracion de Supabase y la deja en cache local. Si no hay
  * señal, sirve la ultima version cacheada -- asi la encuesta se puede
@@ -177,16 +183,30 @@ export async function restaurarConfiguracionDemo(): Promise<Configuracion> {
 }
 
 export async function listarEncuestas(): Promise<Encuesta[]> {
-  const { data: encuestasData, error: encuestasError } = await supabase
-    .from("encuestas")
-    .select("*")
-    .order("fecha", { ascending: false });
-  if (encuestasError) throw encuestasError;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const encuestasData: any[] = [];
+  for (let desde = 0; ; desde += TAMANO_PAGINA) {
+    const { data, error } = await supabase
+      .from("encuestas")
+      .select("*")
+      .order("fecha", { ascending: false })
+      .range(desde, desde + TAMANO_PAGINA - 1);
+    if (error) throw error;
+    encuestasData.push(...(data ?? []));
+    if (!data || data.length < TAMANO_PAGINA) break;
+  }
 
-  const { data: respuestasData, error: respuestasError } = await supabase
-    .from("respuestas")
-    .select("*");
-  if (respuestasError) throw respuestasError;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const respuestasData: any[] = [];
+  for (let desde = 0; ; desde += TAMANO_PAGINA) {
+    const { data, error } = await supabase
+      .from("respuestas")
+      .select("*")
+      .range(desde, desde + TAMANO_PAGINA - 1);
+    if (error) throw error;
+    respuestasData.push(...(data ?? []));
+    if (!data || data.length < TAMANO_PAGINA) break;
+  }
 
   return (encuestasData ?? []).map((e) => ({
     id: e.id,
@@ -194,6 +214,7 @@ export async function listarEncuestas(): Promise<Encuesta[]> {
     participante: e.participante,
     edad: e.edad,
     discapacidad: e.discapacidad,
+    cedula: e.cedula ?? null,
     fecha: e.fecha,
     puntajeTotal: Number(e.puntaje_total),
     nivelId: e.nivel_id,
@@ -219,6 +240,7 @@ export async function guardarEncuesta(encuesta: Encuesta): Promise<void> {
     participante: encuesta.participante,
     edad: encuesta.edad,
     discapacidad: encuesta.discapacidad,
+    cedula: encuesta.cedula,
     fecha: encuesta.fecha,
     puntaje_total: encuesta.puntajeTotal,
     nivel_id: encuesta.nivelId,
