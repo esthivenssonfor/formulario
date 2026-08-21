@@ -41,6 +41,18 @@ function base64ABytes(base64: string): Uint8Array {
   return buffer;
 }
 
+/** Inverso de base64ABytes -- en trozos para no reventar el limite de
+ * argumentos de String.fromCharCode con archivos grandes (ej. un Excel con
+ * varias fotos incrustadas). */
+export function bytesABase64(bytes: Uint8Array): string {
+  const TAMANO_TROZO = 0x8000;
+  let binario = "";
+  for (let i = 0; i < bytes.length; i += TAMANO_TROZO) {
+    binario += String.fromCharCode(...bytes.subarray(i, i + TAMANO_TROZO));
+  }
+  return btoa(binario);
+}
+
 /** Plugin Share con el metodo openFile agregado (ver patches/) -- no forma
  * parte del tipo SharePlugin original de @capacitor/share, asi que se
  * declara aparte para no pelear con los tipos generados. */
